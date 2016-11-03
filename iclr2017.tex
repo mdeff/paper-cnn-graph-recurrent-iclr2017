@@ -7,7 +7,6 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{csquotes}
-
 \usepackage{graphicx}
 
 %\title{Spatio-Temporal Sequence-to-Sequence Modeling with Graph Convolutional Recurrent Networks}
@@ -31,15 +30,15 @@ Graph Convolutional Recurrent Networks}
 %}
 
 \author{Youngjoo Seo \\
-EPFL, Lausanne, Switzerland \\
+EPFL, Switzerland \\
 \texttt{youngjoo.seo@epfl.ch} \\
 \And
 Michaël Defferrard \\
-EPFL, Lausanne, Switzerland \\
+EPFL, Switzerland \\
 \texttt{michael.defferrard@epfl.ch} \\
 \And
 Pierre Vandergheynst \\
-EPFL, Lausanne, Switzerland \\
+EPFL, Switzerland \\
 \texttt{pierre.vandergheynst@epfl.ch} \\
 \And
 Xavier Bresson \\
@@ -81,9 +80,10 @@ NTU, Singapore \\
 	Such structured sequences can be e.g. videos, a spatio-temporal sequence
 	where the structuring graph is a 2D grid, measurements on a network of
 	sensors or random walks on a vocabulary graph for language modeling.
-	This work studies two possible architectures and apply the model to two
-	practical problems: a benchmark moving MNIST dataset and a language model
-	on the Penn Treebank. Experiments \todo{show that our network}
+	This work introduces a general framework for structured sequence modeling,
+	studies two possible architectures and apply the model to two practical
+	problems: a benchmark moving MNIST dataset and a language model on the Penn
+	Treebank. Experiments \todo{show that our network}
 \end{abstract}
 
 \section{Introduction}
@@ -116,6 +116,8 @@ modeling which uses 2D convolutions to leverage the spatial correlations in the
 input data. They successfully applied their model to the prediction of the
 evolution of radar echo maps for precipitation nowcasting.
 
+\todo{speak about seq2seq}
+
 % \citet{moving_mnist} build on that work and points out the importance of
 % multi-step prediction in learning useful representations. They build an LSTM
 % encoder-decoder-predictor model which reconstructs the input sequence and
@@ -140,28 +142,44 @@ The model builds on our recently proposed graph ConvNet framework
 
 \section{Preliminaries}
 
-This section introduces the three building blocks our work relies on: (i) the
-sequence modeling problem, (ii) LSTM networks and (iii) convolutional neural
-networks defined on graphs.
+% This section introduces the three building blocks our work relies on: (i) the
+% structured sequence modeling problem, (ii) LSTM networks and (iii)
+% convolutional neural networks defined on graphs.
 
-\subsection{Sequence Modeling}
+\subsection{Structured Sequence Modeling}
 
-Sequence modeling is the problem of predicting the most likely next element
-$\hat{x}_t \in \mathbf{R}^{d_x}$ given a sequence of previous observations
-$(x_0, \ldots, x_{t-1})$:
+Sequence modeling is the problem of predicting the most likely future
+length-$K$ sequence given the previous $J$ observations:
 \begin{equation} \label{eqn:seq}
-	\hat{x}_t = \argmax_{x_t \in \mathbf{R}^{d_x}} P(x_t | x_{t-1}, \ldots, x_1),
+	\hat{x}_{t+1}, \ldots, \hat{x}_{t+K} =
+	\argmax_{x_{t+1}, \ldots, x_{t+K}}
+	P(x_{t+1}, \ldots, x_{t+K} | x_{t-J+1}, \ldots, x_t),
 \end{equation}
-where $\mathbf{R}^{d_x}$ denotes the domain of the observed features. The
-archetypal application being the language model \citep{seq_graves}.
+where $x_t \in \mathbf{D}$ is an observation at time $t$ and $\mathbf{D}$
+denotes the domain of the observed features. The archetypal application being
+the $n$-gram language model (with $n = J+1$), where $P(x_{t+1} | x_{t-J+1},
+\ldots, x_t)$ models the probability of word $x_{t+1}$ to appear conditioned on
+the past $J$ words in the sentence \citep{seq_graves}.
 
-In this paper, we are interested in structured sequences, i.e. sequences $(x_1,
-\ldots, x_t)$ where the elements of $x$ are not independent but linked by
+In this paper, we are interested in structured sequences, i.e. sequences where
+some dimensions of the observations $x_t$ are not independent but linked by
 pairwise relationships. We propose a generalization to any structure who can be
 modeled by a weighted graph, which is a universal representation of
-heterogeneous pairwise relationships.
+heterogeneous pairwise relationships. We can view $x_t$ as a graph signal, i.e.
+a signal defined on an undirected and weighted graph $\G = (\V, \E, A)$, where
+$\V$ is a finite set of $|\V| = n$ vertices, $\E$ is a set of edges and $A \in
+\R^{n \times n}$ is a weighted adjacency matrix encoding the connection weight
+between two vertices. A signal $x_t: \V \rightarrow \R^{d_x}$ defined on the
+nodes of the graph may be regarded as a matrix $x_t \in \R^{d_x \times n}$
+whose column $i$ is the $d_x$-dimensional value of $x_t$ at the $i^{th}$ node.
+While the number of free variables in a structured sequence of length $K$ is in
+principle $\bO({d_x}^K n^K)$, we sought to exploit the structure of the space
+of possible predictions to reduce the dimensionality and hence make those
+problems tractable.
 
 \subsection{Long Short-Term Memory}
+
+% Leaving the structure apart, a structured sample could be processed by a classical LSTM.
 
 Long short-term memory (LSTM), a recurrent neural network (RNN) architecture
 introduced by \citet{lstm} designed to prevent the gradient from vanishing too
@@ -170,7 +188,7 @@ various general-purpose sequence modeling tasks \citep{seq_graves,
 moving_mnist, seq2seq}. A fully-connected LSTM (FC-LSTM) may be seen as a
 multivariate version of LSTM where the input $x_t \in \R^{d_x}$, cell output
 $h_t \in [-1,1]^{d_h}$ and states $c_t \in \R^{d_h}$ are all vectors. In this
-paper, we follow the FC-LSTM formulation of \citet{convlstm}, that is:
+paper, we follow the FC-LSTM formulation of \citet{seq_graves}, that is:
 \begin{align} \label{eqn:lstm_fc}
 \begin{split}
 	i &= \sigma(W_{xi} x_t + W_{hi} h_{t-1} + w_{ci} \odot c_{t-1} + b_i), \\
@@ -195,15 +213,6 @@ The optional peephole connections $w_{c\cdot} \odot c_t$, introduced by \citet{p
 %and allows the gradient to be trapped in the cell.
 
 \subsection{Convolutional Neural Networks on Graphs}
-
-We are interested in processing graph-structured sequences, i.e. signals
-defined on undirected and connected graphs $\G=(\V,\E,A)$, where $\V$ is a
-finite set of $|\V|=n$ vertices, $\E$ is a set of edges and $A \in \R^{n \times
-n}$ is a weighted adjacency matrix encoding the connection weight between two
-vertices. A signal $x_t: \V \rightarrow \R^{d_x}$ defined on the nodes of the
-graph may be regarded as a matrix $x_t \in \R^{d_x \times n}$ where $x_i \in
-\R^{d_x}$ is the value of $x$ at the $i^{th}$ node and $d_x$ is the number of
-features.
 
 Generalizing convolutional neural networks (CNNs) to arbitrary graphs is a
 recent area of interest. Two approaches are envisaged in the literature: (i) an
@@ -275,8 +284,8 @@ that are at maximum $K$ hops away from the central node, the $K$-neighborhood.
 \paragraph{Convolutional LSTM (convLSTM).} \citet{convlstm} introduced a model
 for grid-structured data, which can be seen as a special case of the proposed
 model where the graph is a grid and the nodes are ordered. Their model is
-essentially the classical FC-LSTM where the multiplication by dense matrices
-$W$ in \eqnref{lstm_fc} have been replaced by convolutions with kernels $W$:
+essentially the classical FC-LSTM \eqnref{lstm_fc} where the multiplication by
+dense matrices $W$ have been replaced by convolutions with kernels $W$:
 \begin{align} \label{eqn:lstm_conv}
 \begin{split}
 	i &= \sigma(W_{xi} \ast x_t + W_{hi} \ast h_{t-1} + w_{ci} \odot c_{t-1} + b_i), \\
@@ -298,10 +307,18 @@ number of parameters, which is independent of the grid size $n_r \times n_c$,
 except for the peepholes parameters $W_{c\cdot} \in \R^{d_h \times n_r \times
 n_c}$.
 
-\todo{They claim that \textquote{although the number of free variables in a
-length-$K$ sequence can be up to $\bO(M^K N^K P^K)$, in practice we may exploit
-the structure of the space of possible predictions to reduce the dimensionality
-and hence make the problem tractable.}}
+\paragraph{Recurrent convolutional neural network (rCNN).} Similarly to
+\citet{convlstm}, \citet{video_language_model} proposed a RNN variation which
+uses convolutional layers instead of fully connected layers. The hidden state
+at time $t$ is given by
+\begin{equation}
+	h_t = \tanh(\sigma(W_{x2} \ast \sigma(W_{x1} \ast x_t)) + \sigma(W_h \ast h_{t-1})),
+\end{equation}
+where the convolutional kernels $W_h \in \R^{d_h \times d_h}$ are restricted to
+be filters of size 1x1. Effectively a fully connected layer which is shared
+across all spatial locations.
+
+
 
 \paragraph{Ad-hoc models.} Alternative models have been proposed \todo{in ...
 Describe and say why they are ad-hoc to the problem.}
@@ -322,12 +339,13 @@ compositionality properties as well as the dynamic properties.
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=10cm]{images/gcnn_rnn.eps}
 	%\framebox[4.0in]{$\;$}
 	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
+	\includegraphics[width=10cm]{figures/gcnn_rnn}
 	\caption{Illustrative picture of the proposed model for spatio-temporal prediction of graph-structured data. The technique simultaneously combines CNN on graphs to identify spatial structures and RNN to find dynamic patterns. RNN can be easily exchanged with LSTM networks.}
 \end{figure}
 
+% Similarly to \citet{video_language_model, convlstm}
 As a second model, we propose to take the convLSTM model \eqnref{lstm_conv} and
 replace the 2D convolution $\ast$ by the generalized graph convolution
 $\ast_\G$, as defined in \eqnref{graph_conv_cheby}, such that:

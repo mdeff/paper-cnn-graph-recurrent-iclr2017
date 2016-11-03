@@ -5,13 +5,13 @@ BIB = $(wildcard *.bib)
 all: $(PDF)
 
 figures:
-	# $(MAKE) -C figures
+	$(MAKE) -C figures
 
 %.pdf: %.tex $(BIB) figures
 	latexmk -pdf $<
 
 clean:
-	# $(MAKE) clean -C figures
+	$(MAKE) clean -C figures
 	rm -f *.{aux,bbl,blg,fdb_latexmk,fls,log,out,lof,dvi}
 	rm -f *.{bcf,run.xml}
 	rm -f *.{toc,snm,nav}
