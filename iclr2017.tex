@@ -61,6 +61,7 @@ NTU, Singapore \\
 \newcommand{\figref}[1]{Figure~\ref{fig:#1}}
 \newcommand{\tabref}[1]{Table~\ref{tab:#1}}
 \newcommand{\eqnref}[1]{(\ref{eqn:#1})}
+\newcommand{\secref}[1]{Section~\ref{sec:#1}}
 
 \usepackage{color}
 \newcommand{\todo}[1]{{\color{red} #1 }}
@@ -76,7 +77,7 @@ NTU, Singapore \\
 	This paper introduces and studies a Graph Convolutional Recurrent
 	Network, a Deep Learning model able to represent and predict structured
 	sequences. It is a generalization of classical recurrent neural networks to
-	data structured by a weighted graph.
+	data structured by a weighted graph. So far the only underlying structures that have been explored in the sequence modeling literature are the linear chain, the 2D grid and the tree.
 	Such structured sequences can be e.g. videos, a spatio-temporal sequence
 	where the structuring graph is a 2D grid, measurements on a network of
 	sensors or random walks on a vocabulary graph for language modeling.
@@ -116,7 +117,7 @@ modeling which uses 2D convolutions to leverage the spatial correlations in the
 input data. They successfully applied their model to the prediction of the
 evolution of radar echo maps for precipitation nowcasting.
 
-\todo{speak about seq2seq}
+% \todo{speak about seq2seq}
 
 % \citet{moving_mnist} build on that work and points out the importance of
 % multi-step prediction in learning useful representations. They build an LSTM
@@ -137,6 +138,13 @@ This work proposes an extension of the convLSTM model from \cite{convlstm} to
 the more general setting where the sequence is structured by a weighted graph.
 The model builds on our recently proposed graph ConvNet framework
 \citep{gcnn}, extended to time-varying graph signals.
+
+\begin{figure}[t]
+	\centering
+	%\framebox[4.0in]{$\;$}
+	\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
+	\caption{\todo{Comparison: linear, tree, graph 1-neighborhood, graph conv}}
+\end{figure}
 
 % capture statistical properties in the joint domain
 
@@ -170,10 +178,10 @@ a signal defined on an undirected and weighted graph $\G = (\V, \E, A)$, where
 $\V$ is a finite set of $|\V| = n$ vertices, $\E$ is a set of edges and $A \in
 \R^{n \times n}$ is a weighted adjacency matrix encoding the connection weight
 between two vertices. A signal $x_t: \V \rightarrow \R^{d_x}$ defined on the
-nodes of the graph may be regarded as a matrix $x_t \in \R^{d_x \times n}$
+nodes of the graph may be regarded as a matrix $x_t \in \R^{n \times d_x}$
 whose column $i$ is the $d_x$-dimensional value of $x_t$ at the $i^{th}$ node.
 While the number of free variables in a structured sequence of length $K$ is in
-principle $\bO({d_x}^K n^K)$, we sought to exploit the structure of the space
+principle $\bO(n^K {d_x}^K)$, we sought to exploit the structure of the space
 of possible predictions to reduce the dimensionality and hence make those
 problems tractable.
 
@@ -182,13 +190,14 @@ problems tractable.
 % Leaving the structure apart, a structured sample could be processed by a classical LSTM.
 
 Long short-term memory (LSTM), a recurrent neural network (RNN) architecture
-introduced by \citet{lstm} designed to prevent the gradient from vanishing too
-quickly, has proven stable and powerful for modeling long-range dependencies in
-various general-purpose sequence modeling tasks \citep{seq_graves,
-moving_mnist, seq2seq}. A fully-connected LSTM (FC-LSTM) may be seen as a
-multivariate version of LSTM where the input $x_t \in \R^{d_x}$, cell output
-$h_t \in [-1,1]^{d_h}$ and states $c_t \in \R^{d_h}$ are all vectors. In this
-paper, we follow the FC-LSTM formulation of \citet{seq_graves}, that is:
+introduced by \citet{lstm} and designed to prevent the gradient from vanishing
+too quickly, has proven stable and powerful for modeling long-range
+dependencies in various general-purpose sequence modeling tasks
+\citep{seq_graves, moving_mnist, seq2seq}. A fully-connected LSTM (FC-LSTM) may
+be seen as a multivariate version of LSTM where the input $x_t \in \R^{d_x}$,
+cell output $h_t \in [-1,1]^{d_h}$ and states $c_t \in \R^{d_h}$ are all
+vectors. In this paper, we follow the FC-LSTM formulation of
+\citet{seq_graves}, that is:
 \begin{align} \label{eqn:lstm_fc}
 \begin{split}
 	i &= \sigma(W_{xi} x_t + W_{hi} h_{t-1} + w_{ci} \odot c_{t-1} + b_i), \\
@@ -200,128 +209,156 @@ paper, we follow the FC-LSTM formulation of \citet{seq_graves}, that is:
 \end{align}
 where $\odot$ denotes the Hadamard product, $\sigma(\cdot)$ the sigmoid
 function $\sigma(x) = 1 / (1+e^{-x})$ and $i, f, o \in [0,1]^{d_h}$ are the
-input, forget and output gates. The weight matrices $W_{x\cdot} \in \R^{d_h
-\times d_x}$, $W_{h\cdot} \in \R^{d_h \times d_h}$, weight vectors $w_{c\cdot}
-\in \R^{d_h}$ and biases $b_i, b_f, b_c, b_o \in R^{d_h}$ are the model
-parameters.\footnote{A practical trick is to initialize the biases $b_i$, $b_f$
-and $b_o$ to one such that the gates are initially open.} 
-Such a model is called fully-connected because the dense matrices $W$ linearly combine all the components of $x$ and $h$.
-The optional peephole connections $w_{c\cdot} \odot c_t$, introduced by \citet{peephole}, have been found to improve performance for certain tasks.
+input, forget and output gates. The weights $W_{x\cdot} \in \R^{d_h \times
+d_x}$, $W_{h\cdot} \in \R^{d_h \times d_h}$, $w_{c\cdot} \in \R^{d_h}$ and
+biases $b_i, b_f, b_c, b_o \in R^{d_h}$ are the model parameters.\footnote{A
+practical trick is to initialize the biases $b_i$, $b_f$ and $b_o$ to one such
+that the gates are initially open.} Such a model is called fully-connected
+because the dense matrices $W$ linearly combine all the components of $x$ and
+$h$. The optional peephole connections $w_{c\cdot} \odot c_t$, introduced by
+\citet{peephole}, have been found to improve performance on certain tasks.
 
 %The major innovation of LSTM resides in the introduction of the memory cell
 %$c_t$ and the various gates, which together control the flow of information
 %and allows the gradient to be trapped in the cell.
 
-\subsection{Convolutional Neural Networks on Graphs}
+\subsection{Convolutional Neural Networks on Graphs} \label{sec:graphconv}
 
 Generalizing convolutional neural networks (CNNs) to arbitrary graphs is a
-recent area of interest. Two approaches are envisaged in the literature: (i) an
-application of the spatial definition of a convolution \citep{gcnn_masci,
-gcnn_niepert} and (ii), a multiplication in the Fourier domain by the way of
-the convolution theorem \citep{gcnn_bruna, gcnn}. \citet{gcnn_masci} introduced
-a spatial generalization of CNNs to 3D meshes. The authors used geodesic polar
-coordinates to define convolution operations on mesh patches, and formulated a
-deep learning architecture which allows comparison across different meshes.
-Hence, this method requires a manifold and is not generalizable to arbitrary
-graphs. \citet{gcnn_niepert} proposed a three steps approach to select a node,
-construct its neighborhood and normalize the selected sub-graph, i.e. order the
-neighboring nodes. The extracted patches are then fed into a conventional 1D
-CNN. As graphs generally don't possess a natural ordering (temporal or
-spatial), a labeling procedure should be used to impose it. \citet{gcnn_bruna}
-were the first to introduce the spectral framework described below in the
-context of graph CNNs. The major drawback of their method is its $\bO(n^2)$
-complexity. \citet{gcnn} essentially fixed that, offering a linear complexity
-$\bO(|\E|)$ while providing strictly localized filters. \citet{gcnn_kipf} took
-a first-order approximation of the filters proposed by \citet{gcnn} and used it
-for semi-supervised classification of nodes. While we focus on the framework
-introduced by \citet{gcnn} in this work, note that the proposed model is
-agnostic to the choice of the graph convolution operator $\ast_\G$.
-\todo{atwood, duvenaud ?}
+recent area of interest. Two approaches are explored in the literature: (i) a
+generalization of the spatial definition of a convolution \citep{gcnn_masci,
+gcnn_niepert} and (ii), a multiplication in the graph Fourier domain by the way
+of the convolution theorem \citep{gcnn_bruna, gcnn}. \citet{gcnn_masci}
+introduced a spatial generalization of CNNs to 3D meshes. The authors used
+geodesic polar coordinates to define convolution operations on mesh patches,
+and formulated a deep learning architecture which allows comparison across
+different meshes.  Hence, this method requires a manifold and is not
+generalizable to arbitrary graphs. \citet{gcnn_niepert} proposed a spatial
+approach which may be decomposed in three steps: (i) select a node, (ii)
+construct its neighborhood and (iii) normalize the selected sub-graph, i.e.
+order the neighboring nodes. The extracted patches are then fed into a
+conventional 1D CNN. As graphs generally don't possess a natural ordering
+(temporal, spatial or otherwise), a labeling procedure should be used to impose
+it. \citet{gcnn_bruna} were the first to introduce the spectral framework
+described below in the context of graph CNNs. The major drawback of their
+method is its $\bO(n^2)$ complexity. \citet{gcnn} essentially fixed that,
+offering a linear complexity $\bO(|\E|)$ while providing strictly localized
+filters. \citet{gcnn_kipf} took a first-order approximation of the spectral
+filters proposed by \citet{gcnn} and successfully used it for semi-supervised
+classification of nodes. While we'll focus on the framework introduced by
+\citet{gcnn}, the proposed model is agnostic to the choice of the graph
+convolution operator $\ast_\G$.  \todo{atwood, duvenaud ?}
 
 As it is difficult to express a meaningful translation operator in the vertex
 domain \citep{gcnn_bruna, gcnn_niepert}, \citet{gcnn} chose a spectral
-formulation for the convolution operator on graph $\ast_\G$. Given this
-definition, a graph signal $x$ is filtered by a non-parametric kernel
+formulation for the convolution operator on graph $\ast_\G$. By this
+definition, a graph signal $x \in \R^{n \times d_x}$ is filtered by a non-parametric kernel
 $g_\theta(\Lambda) = \diag(\theta)$, where $\theta \in \R^n$ is a vector of
 Fourier coefficients, as
 %\begin{equation}
 %	x \ast_\G y = U((U^Tx) \odot (U^Ty)),
 %\end{equation}
 \begin{equation} \label{eqn:graph_conv}
-	y = g_\theta \ast_\G x = g_\theta(L) x = g_\theta(U \Lambda U^T) x = U g_\theta(\Lambda) U^T x,
+	y = \theta \ast_\G x = g_\theta(L) x =
+	g_\theta(U \Lambda U^T) x = U g_\theta(\Lambda) U^T x \in \R^{n \times d_x},
 \end{equation}
-where $U$ is the matrix of eigenvectors and $\Lambda$ the diagonal matrix of
-eigenvalues of the normalized graph Laplacian $L = I_n - D^{-1/2} A D^{-1/2} =
-U \Lambda U^T$, where $I_n$ is the identity matrix and $D \in \R^{n \times n}$
-is the diagonal degree matrix with $D_{ii} = \sum_j A_{ij}$. The graph Fourier
-transform of $x$ is given by $U^Tx$ \citep{gsp}. Evaluating \eqnref{graph_conv}
-is however expensive, as the multiplication with $U$ is $\bO(n^2)$. Furthermore,
-computing the eigendecomposition of $L$ might be prohibitively expensive for
-large graphs. To circumvent this problem, \cite{gcnn} parametrizes $g_\theta$ as a truncated expansion, up to order $K-1$, of Chebyshev polynomials $T_k$
-such that
+where $U \in \R^{n \times n}$ is the matrix of eigenvectors and $\Lambda \in
+\R^{n \times n}$ the diagonal matrix of eigenvalues of the normalized graph
+Laplacian $L = I_n - D^{-1/2} A D^{-1/2} = U \Lambda U^T \in \R^{n \times n}$,
+where $I_n$ is the identity matrix and $D \in \R^{n \times n}$ is the diagonal
+degree matrix with $D_{ii} = \sum_j A_{ij}$ \citep{chung}.  Note that the
+signal $x$ is filtered by $g_\theta$ with an element-wise multiplication of its
+graph Fourier transform $U^T x$ with $\theta$ \citep{gsp}. Evaluating
+\eqnref{graph_conv} is however expensive, as the multiplication with $U$ is
+$\bO(n^2)$. Furthermore, computing the eigendecomposition of $L$ might be
+prohibitively expensive for large graphs. To circumvent this problem,
+\cite{gcnn} parametrizes $g_\theta$ as a truncated expansion, up to order
+$K-1$, of Chebyshev polynomials $T_k$ such that
 \begin{equation} \label{eq:filt_cheby}
 	g_\theta(\Lambda) = \sum_{k=0}^{K-1} \theta_k T_k(\tilde{\Lambda}),
 \end{equation}
 where the parameter $\theta \in \R^K$ is a vector of Chebyshev coefficients and
 $T_k(\tilde{\Lambda}) \in \R^{n \times n}$ is the Chebyshev polynomial of order
-$k$ evaluated at $\tilde{\Lambda} = 2 \Lambda / \lambda_{max} - I_n$.
-The filtering operation can then be written as
+$k$ evaluated at $\tilde{\Lambda} = 2 \Lambda / \lambda_{max} - I_n$. The
+graph filtering operation can then be written as
 \begin{equation} \label{eqn:graph_conv_cheby}
-	y = g_\theta \ast_\G x = g_\theta(L) x = \sum_{k=0}^{K-1} \theta_k T_k(\tilde{L}) x,
+	y = \theta \ast_\G x = g_\theta(L) x = \sum_{k=0}^{K-1} \theta_k T_k(\tilde{L}) x,
 \end{equation}
 where $T_k(\tilde{L}) \in \R^{n \times n}$ is the Chebyshev polynomial of order
 $k$ evaluated at the scaled Laplacian $\tilde{L} = 2 L / \lambda_{max} - I_n$.
 Using the stable recurrence relation $T_k(x) = 2x T_{k-1}(x) - T_{k-2}(x)$ with
 $T_0 = 1$ and $T_1 = x$, one can evaluate \eqnref{graph_conv_cheby} in
-$\bO(K|\E|)$ operations, i.e. linear in the number of edges. The reader is
-referred to \cite{gcnn} for details and an in-depth discussion. Note that
-the filtering operation \eqnref{graph_conv_cheby}, as it is an order $K$
-polynomial of the Laplacian, is $K$-localized, i.e. it depends only on nodes
-that are at maximum $K$ hops away from the central node, the $K$-neighborhood.
+$\bO(K|\E|)$ operations, i.e. linearly with the number of edges. Note that as
+the filtering operation \eqnref{graph_conv_cheby} is an order $K$ polynomial of
+the Laplacian, it is $K$-localized and depends only on nodes that are at
+maximum $K$ hops away from the central node, the $K$-neighborhood. The reader
+is referred to \cite{gcnn} for details and an in-depth discussion.
 
 \section{Related Works}
 
-\paragraph{Convolutional LSTM (convLSTM).} \citet{convlstm} introduced a model
-for grid-structured data, which can be seen as a special case of the proposed
-model where the graph is a grid and the nodes are ordered. Their model is
-essentially the classical FC-LSTM \eqnref{lstm_fc} where the multiplication by
-dense matrices $W$ have been replaced by convolutions with kernels $W$:
+%\paragraph{Spatio-temporal sequence modeling with a combination of recurrent nets and convolutions.}
+%\paragraph{Convolutional LSTM (convLSTM).} 
+%\paragraph{Recurrent convolutional neural network (rCNN).}
+%\paragraph{Non-convolutional approaches.}
+
+\citet{convlstm} introduced a model for grid-structured sequences, which can be
+seen as a special case of the proposed model where the graph is a grid and the
+nodes are ordered. Their model is essentially the classical FC-LSTM
+\eqnref{lstm_fc} where the multiplications by dense matrices $W$ have been
+replaced by convolutions with kernels $W$:
 \begin{align} \label{eqn:lstm_conv}
 \begin{split}
-	i &= \sigma(W_{xi} \ast x_t + W_{hi} \ast h_{t-1} + w_{ci} \odot c_{t-1} + b_i), \\
-	f &= \sigma(W_{xf} \ast x_t + W_{hf} \ast h_{t-1} + w_{cf} \odot c_{t-1} + b_f), \\
-	c_t &= f_t \odot c_{t-1} + i_t \odot \tanh(W_{xc} \ast x_t + W_{hc} \ast h_{t-1} + b_c), \\
-	o &= \sigma(W_{xo} \ast x_t + W_{ho} \ast h_{t-1} + w_{co} \odot c_t + b_o), \\
+	i &= \sigma(W_{xi} \ast x_t + W_{hi} \ast h_{t-1} +
+	            w_{ci} \odot c_{t-1} + b_i), \\
+	f &= \sigma(W_{xf} \ast x_t + W_{hf} \ast h_{t-1} +
+	            w_{cf} \odot c_{t-1} + b_f), \\
+	c_t &= f_t \odot c_{t-1} + i_t \odot
+	       \tanh(W_{xc} \ast x_t + W_{hc} \ast h_{t-1} + b_c), \\
+	o &= \sigma(W_{xo} \ast x_t + W_{ho} \ast h_{t-1} +
+	            w_{co} \odot c_t + b_o), \\
 	h_t &= o \odot \tanh(c_t),
 \end{split}
 \end{align}
-where $\ast$ denotes the 2D convolution by a set of kernels. In that setting,
-the input tensor $x_t \in \R^{d_x \times n_r \times n_c}$ is the observation of
+where $\ast$ denotes the 2D convolution by a set of kernels. In their setting,
+the input tensor $x_t \in \R^{n_r \times n_c \times d_x}$ is the observation of
 $d_x$ measurements at time $t$ of a dynamical system over a spatial region
 represented by a grid of $n_r$ rows and $n_c$ columns. The model holds
 spatially distributed hidden and cell states of size $d_h$ given by the tensors
-$c_t, h_t \in \R^{d_h \times n_r \times n_c}$. The size $m$ of the
-convolutional kernels $W_{h\cdot} \in \R^{d_h \times d_h \times m \times m}$
-and $W_{x\cdot} \in \R^{d_h \times d_x \times m \times m}$ determines the
-number of parameters, which is independent of the grid size $n_r \times n_c$,
-except for the peepholes parameters $W_{c\cdot} \in \R^{d_h \times n_r \times
-n_c}$.
-
-\paragraph{Recurrent convolutional neural network (rCNN).} Similarly to
-\citet{convlstm}, \citet{video_language_model} proposed a RNN variation which
+$c_t, h_t \in \R^{n_r \times n_c \times d_h}$. The size $m$ of the
+convolutional kernels $W_{h\cdot} \in \R^{m \times m \times d_h \times d_h}$
+and $W_{x\cdot} \in \R^{m \times m \times d_h \times d_x}$ determines the
+number of parameters, which is independent of the grid size $n_r \times n_c$.
+Earlier, \citet{video_language_model} proposed a similar RNN variation which
 uses convolutional layers instead of fully connected layers. The hidden state
 at time $t$ is given by
 \begin{equation}
 	h_t = \tanh(\sigma(W_{x2} \ast \sigma(W_{x1} \ast x_t)) + \sigma(W_h \ast h_{t-1})),
 \end{equation}
 where the convolutional kernels $W_h \in \R^{d_h \times d_h}$ are restricted to
-be filters of size 1x1. Effectively a fully connected layer which is shared
-across all spatial locations.
+filters of size 1x1 (effectively a fully connected layer shared across all
+spatial locations).
 
+Remarking that natural language exhibits syntactic properties that naturally
+combine words into phrases, \citet{treelstm} proposed a model for
+tree-structured topologies, where each LSTM has access to the states of its
+children. They obtained state-of-the-art results on semantic relatedness and
+sentiment classification. \citet{graphlstm} followed up and proposed a variant
+on graphs. Their sophisticated network architecture obtained state-of-the-art
+results for semantic object parsing on four datasets. In those models, the
+states are gathered from the neighborhood by the way of a weighted sum with
+trainable weight matrices. Those weights are however not shared across the
+graph, which would otherwise have required some ordering of the nodes, alike
+any other spatial definition of graph convolution. Moreover, their formulations
+are limited to the one-neighborhood of the current node, with equal weight
+given to each neighbor.
 
+Motivated by spatio-temporal problems like modeling human motion and object
+interactions, \citet{structuralrnn} developed a method to cast a
+spatio-temporal graph as a rich RNN mixture which essentially associates a RNN
+to each node and edge. Again, the communication is limited to directly
+connected nodes and edges.
 
-\paragraph{Ad-hoc models.} Alternative models have been proposed \todo{in ...
-Describe and say why they are ad-hoc to the problem.}
+% \citet{deepstruct} combined Markov random fields with deep learning
 
 \section{Proposed Model}
 
@@ -351,24 +388,29 @@ replace the 2D convolution $\ast$ by the generalized graph convolution
 $\ast_\G$, as defined in \eqnref{graph_conv_cheby}, such that:
 \begin{align} \label{eqn:lstm_graph}
 \begin{split}
-	i &= \sigma(W_{xi} \ast_\G x_t + W_{hi} \ast_\G h_{t-1} + w_{ci} \odot c_{t-1} + b_i), \\
-	f &= \sigma(W_{xf} \ast_\G x_t + W_{hf} \ast_\G h_{t-1} + w_{cf} \odot c_{t-1} + b_f), \\
-	c_t &= f_t \odot c_{t-1} + i_t \odot \tanh(W_{xc} \ast_\G x_t + W_{hc} \ast_\G h_{t-1} + b_c), \\
-	o &= \sigma(W_{xo} \ast_\G x_t + W_{ho} \ast_\G h_{t-1} + w_{co} \odot c_t + b_o), \\
+	i &= \sigma(W_{xi} \ast_\G x_t + W_{hi} \ast_\G h_{t-1} +
+	            w_{ci} \odot c_{t-1} + b_i), \\
+	f &= \sigma(W_{xf} \ast_\G x_t + W_{hf} \ast_\G h_{t-1} +
+	            w_{cf} \odot c_{t-1} + b_f), \\
+	c_t &= f_t \odot c_{t-1} + i_t \odot
+	       \tanh(W_{xc} \ast_\G x_t + W_{hc} \ast_\G h_{t-1} + b_c), \\
+	o &= \sigma(W_{xo} \ast_\G x_t + W_{ho} \ast_\G h_{t-1} +
+	            w_{co} \odot c_t + b_o), \\
 	h_t &= o \odot \tanh(c_t).
 \end{split}
 \end{align}
-In that setting, the input matrix $x_t \in \R^{d_x \times n}$ may represent the
+In that setting, the input matrix $x_t \in \R^{n \times d_x}$ may represent the
 observation of $d_x$ measurements at time $t$ of a dynamical system over a
-network of $n = |V|$ sensors whose organization is given by the weighted graph
-$\G$. The model holds spatially distributed hidden and cell states of size
-$d_h$ given by the matrices $c_t, h_t \in \R^{d_h \times n}$. Peepholes are
-controlled by $w_{c\cdot} \in \R^{d_h \times n}$. The support $K$ of the graph
-convolutional kernels $W_{h\cdot} \in \R^{d_h \times d_h \times K}$ and
-$W_{x\cdot} \in \R^{d_h \times d_x \times K}$ determines the number of
-parameters, which is independent of the number of nodes $n$. In a distributed
-computing setting, $K$ controls the communication overhead, i.e. the number of
-nodes a node $i$ should exchange with in order to compute its local states.
+network of $n$ sensors whose organization is given by the weighted graph $\G$.
+The model holds spatially distributed hidden and cell states of size $d_h$
+given by the matrices $c_t, h_t \in \R^{n \times d_h}$. Peepholes are
+controlled by $w_{c\cdot} \in \R^{n \times d_h}$. The support $K$ of the graph
+convolutional kernels defined by the Chebyshev coefficients $W_{h\cdot} \in
+\R^{K \times d_h \times d_h}$ and $W_{x\cdot} \in \R^{K \times d_h \times d_x}$
+determines the number of parameters, which is independent of the number of
+nodes $n$. In a distributed computing setting, $K$ controls the communication
+overhead, i.e. the number of nodes a node $i$ should exchange with in order to
+compute its local states.
 
 The proposed blend of RNNs and graph CNNs is not limited to LSTMs and is
 straightforward to apply to any kind of recursive networks. For example, a
@@ -387,7 +429,7 @@ and a Gated Recurrent Unit (GRU) \citep{gru} as
 \end{align}
 
 As demonstrated by \citet{convlstm}, structure-aware LSTM cells can be stacked
-and used for sequence-to-sequence models using an architecture composed of an
+and used as sequence-to-sequence models using an architecture composed of an
 encoder, which processes the input sequence, and a decoder, which generates an
 output sequence. A standard practice for machine translation using RNNs
 \citep{gru, seq2seq}.
