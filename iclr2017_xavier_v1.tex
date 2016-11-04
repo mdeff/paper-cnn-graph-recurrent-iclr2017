@@ -441,9 +441,57 @@ output sequence. A standard practice for machine translation using RNNs
 
 
 
+
 \subsection{Language Modeling on Penn Treebank}
 
-The Penn Treebank dataset has 1,036,580 words, which is already split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary is 10,000. 
+The Penn Treebank dataset has 1,036,580 words, which is already split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary is 10,000. We use the library gensim\footnote{https://radimrehurek.com/gensim/models/word2vec.html} to compute a word2vec model for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embeddings using the 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix. The size of the batch is 20, the number of temporal steps to unroll is 21, the dimension of the hidden state is 200. The global learning rate is 0.02 for vanilla RNN and graphCNN variants, 0.05 for LSTM and graphCNN variants, and 0.1 for GRU. The learning decay function is the global learning rate times the $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 8 epochs.
+
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=6cm]{figures/matrixW.eps}
+	\caption{Adjacency Matrix of Word Embeddings} 
+	\label{fig2}
+\end{figure}
+
+
+
+
+Table \ref{tab1} reports the final perplexity values for each model and Figures \ref{tab3}
+
+\begin{table*}[h!]
+ \centering
+{\small
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+ Architecture & Train Perplexity & Test Perplexity  \\
+\hline
+VRNN & 361.26 & 371.77 \\
+VRNN-GCNN-M1 & 115.64 & 180.78 \\
+VRNN-GCNN-M2 & 497.37 & 487.99 \\
+LSTM & 240.82 & 263.85 \\
+LSTM-GCNN-M1 & 55.98 & 189.07 \\
+LSTM-GCNN-M2 & 658.24 & 614.61 \\
+GRU & xxx & xxx \\
+GRU-GCNN-M1 & xxx & xxx \\
+GRU-GCNN-M2 & xxx & xxx \\
+\hline
+\end{tabular}
+}
+\caption{Comparison of models.} 
+\label{tab1}
+\end{table*}
+
+
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=6cm]{figures/matrixW.eps}
+	\caption{Adjacency Matrix of Word Embeddings} 
+	\label{fig3a}
+\end{figure}
+
+
 
 
 

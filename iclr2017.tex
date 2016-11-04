@@ -367,6 +367,7 @@ connected nodes and edges.
 
 We propose two natural architectures for GCRN that are quite natural, and investigate their performances on real-world applications in Section \ref{experiments}.
 
+<<<<<<< HEAD
 
 As a first model, we consider a natural end-to-end learning system, meaning that we stack a graph CNN, defined as
 \eqnref{graph_conv_cheby}, for feature extraction and a LSTM, defined as \eqnref{lstm_fc}, for sequence learning: \begin{align} \label{eqn:lstm_graph_v1}
@@ -384,6 +385,15 @@ In that setting, the input matrix $x_t \in \R^{n \times d_x}$ may represent the
 observation of $d_x$ measurements at time $t$ of a dynamical system over a
 network whose organization is given by a graph $\G$. $x_t^{\textrm{CNN}}$ is the output of the graph CNN gate. For a proof of concept, we simply choose here $x_t^{\textrm{CNN}} = W^{\textrm{CNN}} \ast_\G x_t$, where $W^{\textrm{CNN}} \in \R^{K \times d_x \times d_x}$ are the Chebyshev coefficients  for the graph convolutional kernels of support $K$. The model also holds spatially distributed hidden and cell states of size $d_h$ given by the matrices $c_t, h_t \in \R^{n \times d_h}$. Peepholes are controlled by $w_{c\cdot} \in \R^{n \times d_h}$. The weights $W_{h\cdot} \in
 \R^{ d_h \times d_h}$ and $W_{x\cdot} \in \R^{d_h \times d_x}$ are the parameters of the fully connected layers.  Such architecture \eqnref{lstm_graph_v1} may be enough to capture the data distribution by exploiting local stationarity and compositionality properties as well as the dynamic properties.
+=======
+\begin{figure}[ht]
+	\centering
+	%\framebox[4.0in]{$\;$}
+	\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
+%	\includegraphics[width=10cm]{figures/gcnn_rnn.eps}
+	\caption{Illustrative picture of the proposed model for spatio-temporal prediction of graph-structured data. The technique simultaneously combines CNN on graphs to identify spatial structures and RNN to find dynamic patterns. RNN can be easily exchanged with LSTM networks.}
+\end{figure}
+>>>>>>> d6ad3cd77e5d4ac73a3aae95ad2347a98bf4ee99
 
 % Similarly to \citet{video_language_model, convlstm}
 As a second model, we generalize the convLSTM model \eqnref{lstm_conv} to graphs by simply 
