@@ -455,7 +455,10 @@ Cost function is the cross-entropy defined as
 
 \subsection{Moving MNIST}
 \todo{empirical proof that graph RNN works on grid structured data}
-Each of sample in moving MNIST data has 20 frame of sequential images containing 2 randomly selected handwritten digit from MNIST dataset. In each frame, two digits are moving inside of 64 $/times$ 64
+Following the experimental setup of \citit{convlstm} Each of sample in moving MNIST data has 20 number of sequential images containing 2 randomly selected handwritten digit from MNIST dataset. In each frame, two digits are moving inside of 64 $\times$ 64 image by changing their positions. 
+
+
+In addition, we add a rotational option to make each of digit rotates 360 degrees through time to show proposing GCRNN is robust to rotations of the image. 
 
 Following the experimental setup of \citet{convlstm}.
 
