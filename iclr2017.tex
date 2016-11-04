@@ -437,7 +437,7 @@ output sequence. A standard practice for machine translation using RNNs
 
 \section{Experiments}
 \label{experiments}
-
+Proposing Graph Convolutional Recurrent Neural Networks(GCRNN) applies two benchmark datasets: Penn Tree Bank\citet{ptb} and moving MNIST\citet{moving_mnist}. Experiments are mainly focuses on how the graph convolution give effects on RNN model by comparing conventional RNN models with GCRNN. In moving MNIST experiments, we shows 2D grid structure is one of special case of graph structure which GCRNN can easily fit to the model as convolutional RNN.
 
 
 
@@ -449,13 +449,13 @@ The Penn Treebank dataset has 1,036,580 words, which is already split\footnote{h
 
 \newpage
 
-Proposing Graph Convolutional Recurrent Neural Networks(GCRNN) applies two benchmark datasets: moving MNIST\citet{moving_mnist} and Penn Tree Bank\citet{ptb}. Experiments are mainly focuses on how the graph convolution give effects on RNN model by comparing conventional RNN models with GCRNN. In moving MNIST experiments, we shows 2D grid structure is one of special case of graph structure which GCRNN can easily fit to the model as convolutional RNN, while Language modeling on Penn Tree Bank demonstrates graph structure on words helps 
+
 
 Cost function is the cross-entropy defined as
 
 \subsection{Moving MNIST}
 \todo{empirical proof that graph RNN works on grid structured data}
-
+Each of sample in moving MNIST data has 20 frame of sequential images containing 2 randomly selected handwritten digit from MNIST dataset. In each frame, two digits are moving inside of 64 $/times$ 64
 
 Following the experimental setup of \citet{convlstm}.
 
