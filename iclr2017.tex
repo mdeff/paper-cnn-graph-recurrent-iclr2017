@@ -8,6 +8,7 @@
 \usepackage{amssymb}
 \usepackage{csquotes}
 \usepackage{graphicx}
+\usepackage{subfigure}
 
 %\title{Spatio-Temporal Sequence-to-Sequence Modeling with Graph Convolutional Recurrent Networks}
 %\title{Graph Convolutional Recurrent Network\\
@@ -29,7 +30,8 @@
 %\texttt{\{xavier.bresson@ntu.edu.sg} \\
 %}
 
-\author{Youngjoo Seo \\
+\author{
+Youngjoo Seo \\
 EPFL, Switzerland \\
 \texttt{youngjoo.seo@epfl.ch} \\
 \And
@@ -43,7 +45,7 @@ EPFL, Switzerland \\
 \And
 Xavier Bresson \\
 NTU, Singapore \\
-\texttt{xavier.bresson@ntu.edu.sg} \\
+\texttt{xavier.bresson@ntu.edu.sg} 
 }
 
 \newcommand{\fix}{\marginpar{FIX}}
@@ -76,14 +78,14 @@ NTU, Singapore \\
 \begin{abstract}
 	This paper introduces Graph Convolutional Recurrent
 	Network (GCRN), a deep learning model able to predict structured
-	sequences of data. GCRN is a generalization of classical recurrent neural networks (RNN) to
+	sequences of data. Precisely, GCRN is a generalization of classical recurrent neural networks (RNN) to
 	data structured by any arbitrary graph. 
  	%So far the only underlying structures that have been explored in the sequence modeling literature are the linear chain, the 2D grid and the tree.
 	Such structured sequences can be series of frames in videos, spatio-temporal measurements on a network of
 	sensors, or random walks on a vocabulary graph for natural language modeling.
 	The proposed model combines convolutional neural networks (CNN) on graphs to identify spatial structures and RNN to find dynamic patterns. We study two possible architectures of GCRN, and apply the models to two practical
 	problems: predicting moving MNIST data, and modeling natural language with the Penn
-	Treebank dataset [TO CHECK!!!]. Experiments show that exploiting simultaneously graph spatial and dynamic information about data can improve both precision and learning speed.
+	Treebank dataset. Experiments show that exploiting simultaneously graph spatial and dynamic information about data can improve both precision and learning speed.
 \end{abstract}
 
 	
@@ -99,7 +101,7 @@ succeeding frames share temporal and spatial structures. Many works, such as \ci
 temporal regularities. Their models are able to process possibly time-varying
 visual inputs for variable-length prediction. These neural network architectures consist of combining
 a CNN for visual feature extraction followed by a RNN for sequence learning. Such
-architectures have been successful used for video activity recognition, image
+architectures have been successfully used for video activity recognition, image
 captioning and video description.
 
 More recently, interest has grown in properly fusing the CNN and RNN models for
@@ -136,8 +138,8 @@ This work leverages on the recent models of \cite{gcnn,video_language_model,conv
 	\centering
 	%\framebox[4.0in]{$\;$}
 	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
-	\includegraphics[width=10cm]{figures/gcnn_rnn}
-	\caption{Illustration of the proposed model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks.} 
+	\includegraphics[width=10cm]{figures/gcnn_rnn.pdf}
+	\caption{Illustration of the proposed GCRN model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks.} 
 	\label{fig1}
 \end{figure}
 
@@ -211,7 +213,7 @@ where $\odot$ denotes the Hadamard product, $\sigma(\cdot)$ the sigmoid
 function $\sigma(x) = 1 / (1+e^{-x})$ and $i, f, o \in [0,1]^{d_h}$ are the
 input, forget and output gates. The weights $W_{x\cdot} \in \R^{d_h \times
 d_x}$, $W_{h\cdot} \in \R^{d_h \times d_h}$, $w_{c\cdot} \in \R^{d_h}$ and
-biases $b_i, b_f, b_c, b_o \in R^{d_h}$ are the model parameters.\footnote{A
+biases $b_i, b_f, b_c, b_o \in \R^{d_h}$ are the model parameters.\footnote{A
 practical trick is to initialize the biases $b_i$, $b_f$ and $b_o$ to one such
 that the gates are initially open.} Such a model is called fully-connected
 because the dense matrices $W$ linearly combine all the components of $x$ and
@@ -360,12 +362,13 @@ connected nodes and edges.
 % \citet{deepstruct} combined Markov random fields with deep learning
 
 \section{Proposed GCRN Models}
+\label{sec:our_models}
 
 % Two models:
 % 1. conv output to vRNN / LSTM
 % 2. integrating conv and LSTM
 
-We propose two natural architectures for GCRN that are quite natural, and investigate their performances on real-world applications in Section \ref{experiments}.
+We propose two GCRN architectures that are quite natural, and investigate their performances in real-world applications in Section \ref{experiments}.
 
 
 As a first model, we consider a natural end-to-end learning system, meaning that we stack a graph CNN, defined as
@@ -389,7 +392,7 @@ network whose organization is given by a graph $\G$. $x_t^{\textrm{CNN}}$ is the
 As a second model, we generalize the convLSTM model \eqnref{lstm_conv} to graphs by simply 
 replacing the Euclidean 2D convolution $\ast$ by the graph convolution
 $\ast_\G$:
-\begin{align} \label{eqn:lstm_graph}
+\begin{align} \label{eqn:lstm_graph_v2}
 \begin{split}
 	i &= \sigma(W_{xi} \ast_\G x_t + W_{hi} \ast_\G h_{t-1} +
 	            w_{ci} \odot c_{t-1} + b_i), \\
@@ -441,23 +444,34 @@ output sequence. A standard practice for machine translation using RNNs
 
 
 
+\subsection{Natural Language Modeling on Penn Treebank}
 
-\subsection{Language Modeling on Penn Treebank}
+The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary of this corpus is 10,000. We use the library gensim\footnote{https://radimrehurek.com/gensim/models/word2vec.html} to compute a word2vec model \cite{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embeddings using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. The values of the hyperparameters are as follows; the size of the data batch is 20, the number of temporal steps to unroll is 21, the dimension of the hidden state is 200. The global learning rate is 0.02 for vanilla RNN, 0.1 for LSTM, and 0.1 for GRU. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 8 epochs. Table \ref{tab1} reports the final perplexity values for each investigated model and Figures \ref{fig3}(a-b) plot the perplexity value vs. the epoch number for the training and testing sets. 
 
-The Penn Treebank dataset has 1,036,580 words, which is already split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary is 10,000. We use the library gensim\footnote{https://radimrehurek.com/gensim/models/word2vec.html} to compute a word2vec model for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embeddings using the 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix. The size of the batch is 20, the number of temporal steps to unroll is 21, the dimension of the hidden state is 200. The global learning rate is 0.02 for vanilla RNN and graphCNN variants, 0.05 for LSTM and graphCNN variants, and 0.1 for GRU. The learning decay function is the global learning rate times the $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 8 epochs.
+Numerical experiments show:
+\vspace{-0.25cm}
+\begin{enumerate}
+\item Given the same experimental conditions in terms of hyperparameters, the standalone models of vanilla RNN and LSTM are less accurate in the sense of perplexity than their counterparts using the spatial graph information extracted by graph CNN with the GCRN architecture of Model 1 defined in \eqnref{lstm_graph_v1}.
+\item The use of meaningful spatial graph information found by graph CNN speeds up the learning process. The graph structure likely acts a constraint on the learning system that is forced to move in the space of language topics.
+\item Model 1 outperforms significantly Model 2 defined in \eqnref{lstm_graph_v2}. This may result of the large increase of dimensionality in Model 2 as the dimension of the hidden and cell states changes from 200 to 10,000, the size of the vocabulary. A solution would be to downsize the data dimensionality, as done in \cite{convlstm} in the case of image data.
+\item We observe the well-known problem of overfitting for the GCRN architectures based on the LSTM and GRU models, which increases the value of perplexity for the testing set. A solution would be to regularize the learning optimization with dropout such as \cite{srivastava2013improving,zaremba2014recurrent}.
+\end{enumerate}
 
 
-\begin{figure}[ht]
-	\centering
-	\includegraphics[width=6cm]{figures/matrixW.eps}
-	\caption{Adjacency Matrix of Word Embeddings} 
-	\label{fig2}
+
+
+\begin{figure}[h!]
+\centering
+\subfigure[]{\includegraphics[height=5cm]{figures/matrixW.pdf}}
+\hspace{0.5cm}
+\subfigure[]{\includegraphics[height=5cm]{figures/embedding.pdf}}
+\caption{Left figure shows the adjacency matrix of word embeddings, and right figure presents a 3D visualisation of words' structure.}
+\label{fig2}
 \end{figure}
 
 
 
 
-Table \ref{tab1} reports the final perplexity values for each model and Figures \ref{tab3}
 
 \begin{table*}[h!]
  \centering
@@ -466,29 +480,34 @@ Table \ref{tab1} reports the final perplexity values for each model and Figures 
 \hline
  Architecture & Train Perplexity & Test Perplexity  \\
 \hline
+\hline
 VRNN & 361.26 & 371.77 \\
 VRNN-GCNN-M1 & 115.64 & 180.78 \\
 VRNN-GCNN-M2 & 497.37 & 487.99 \\
+\hline
+\hline
 LSTM & 240.82 & 263.85 \\
-LSTM-GCNN-M1 & 55.98 & 189.07 \\
+LSTM-GCNN-M1 & 55.98 & 195.07 \\
 LSTM-GCNN-M2 & 658.24 & 614.61 \\
-GRU & xxx & xxx \\
-GRU-GCNN-M1 & xxx & xxx \\
-GRU-GCNN-M2 & xxx & xxx \\
+\hline
+\hline
+GRU & 179.42 & 218.63 \\
+GRU-GCNN-M1 & 30.03 & 231.22 \\
 \hline
 \end{tabular}
 }
-\caption{Comparison of models.} 
+\caption{Comparison of investigated models in terms of perplexity. VRNN stands for Vanilla RNN, GCNN is for graph CNN, M1 and M2 refer respectively to GCRN Model 1 defined in \eqnref{lstm_graph_v1}, and GCRN Model 2 in \eqnref{lstm_graph_v2}.} 
 \label{tab1}
 \end{table*}
 
 
 
-\begin{figure}[ht]
-	\centering
-	\includegraphics[width=6cm]{figures/matrixW.eps}
-	\caption{Adjacency Matrix of Word Embeddings} 
-	\label{fig3a}
+\begin{figure}[h!]
+\centering
+\subfigure[]{\includegraphics[height=4cm]{figures/train_ptb.pdf}}
+\subfigure[]{\includegraphics[height=4cm]{figures/test_ptb.pdf}}
+\caption{Dynamic of learning process, perplexity vs. epoch, for the investigated models on the training and testing sets.}
+\label{fig3}
 \end{figure}
 
 
