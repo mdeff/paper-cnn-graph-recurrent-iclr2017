@@ -9,6 +9,7 @@
 \usepackage{csquotes}
 \usepackage{graphicx}
 \usepackage{subfigure}
+\usepackage{booktabs}
 
 %\title{Spatio-Temporal Sequence-to-Sequence Modeling with Graph Convolutional Recurrent Networks}
 %\title{Graph Convolutional Recurrent Network\\
@@ -440,9 +441,50 @@ output sequence. A standard practice for machine translation using RNNs
 
 \section{Experiments}
 \label{experiments}
-Proposing Graph Convolutional Recurrent Neural Networks(GCRNN) applies two benchmark datasets: Penn Tree Bank\citet{ptb} and moving MNIST\citet{moving_mnist}. Experiments are mainly focuses on how the graph convolution give effects on RNN model by comparing conventional RNN models with GCRNN. In moving MNIST experiments, we shows 2D grid structure is one of special case of graph structure which GCRNN can easily fit to the model as convolutional RNN.
 
 
+\subsection{Spatio-Temporal Sequence Modeling on Moving-MNIST}
+
+For this synthetic experiment, we use the publicly available
+dataset\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} generated
+by \citet{convlstm}. All sequences are 20 frames long (10 frames for the input
+and 10 frames for the prediction) and contain two handwritten digits bouncing
+inside a $64 \times 64$ patch. Following the experimental setup of
+\citet{convlstm}, all the models are trained by minimizing the cross-entropy
+loss using back-propagation through time (BPTT) and RMSProp with a learning
+rate of $10^-3$ and a decay rate of 0.9.
+% Also, we perform early-stopping on the validation set.
+
+\begin{table}
+	\centering
+	\begin{tabular}{lcccc}
+		\toprule
+		Architecture & Support & Parameters & Running time & Cross-entropy \\
+		\midrule
+		FC-LSTM \citep{convlstm} & N/A & 142,667,776 & N/A & 4832 \\
+		LSTM+CNN \citep{convlstm} & $5 \times 5$ & 13,524,496 & 2.1 & 3982 \\
+		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 4438\\
+		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3741\\
+		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & N/A \\
+		\bottomrule
+	\end{tabular}
+	\caption{Comparison between models.}
+	\label{tab:moving_mnist}
+\end{table}
+
+\begin{figure}[ht]
+	\centering
+	%\framebox[4.0in]{$\;$}
+	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
+	\includegraphics[width=\linewidth]{figures/moving_mnist}
+	\caption{Convergence of the various models.} 
+\end{figure}
+
+\tabref{moving_mnist} shows the performance of various models: (i) the baseline
+FC-LSTM from \citet{convlstm} (performance measure from them), (ii) the 1-layer
+LSTM+CNN from \citet{convlstm} and (iii) the proposed LSTM+GCNN defined by
+\eqnref{lstm_graph_v2} with three different values of $K$. These results show
+the ability of the proposed method to capture spatio-temporal structures.
 
 \subsection{Natural Language Modeling on Penn Treebank}
 
@@ -501,7 +543,6 @@ GRU-GCNN-M1 & 30.03 & 231.22 \\
 \end{table*}
 
 
-
 \begin{figure}[h!]
 \centering
 \subfigure[]{\includegraphics[height=4cm]{figures/train_ptb.pdf}}
@@ -509,35 +550,6 @@ GRU-GCNN-M1 & 30.03 & 231.22 \\
 \caption{Dynamic of learning process, perplexity vs. epoch, for the investigated models on the training and testing sets.}
 \label{fig3}
 \end{figure}
-
-
-
-
-
-\newpage
-
-
-
-Cost function is the cross-entropy defined as
-
-\subsection{Moving MNIST}
-\todo{empirical proof that graph RNN works on grid structured data}
-Following the experimental setup of \citet{convlstm} Each of sample in moving MNIST data has 20 number of sequential images containing 2 randomly selected handwritten digit from MNIST dataset. In each frame, two digits are moving inside of 64 $\times$ 64 image by changing their positions. 
-
-
-In addition, we add a rotational option to make each of digit rotates 360 degrees through time to show proposing GCRNN is robust to rotations of the image. 
-
-Following the experimental setup of \citet{convlstm}.
-
-Our first experiment on the moving MNIST dataset \citet{moving_mnist} shows the
-ability of our model \eqnref{lstm_graph_v2} to learn spatio-temporal structures.
-
-moving MNIST: similar as \eqnref{lstm_conv} convLSTM because of lack of orientation / node ordering
-
-rotating MNIST: better thanks to that property
-
-
-
 
 \section{Conclusion and Future Work}
 
