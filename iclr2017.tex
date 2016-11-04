@@ -12,8 +12,8 @@
 %\title{Spatio-Temporal Sequence-to-Sequence Modeling with Graph Convolutional Recurrent Networks}
 %\title{Graph Convolutional Recurrent Network\\
 %for Structured Sequence Modeling}
-\title{Structured Sequence Modeling with \\
-Graph Convolutional Recurrent Networks}
+\title{Structured Sequence Modeling with \\ Graph Convolutional Recurrent Networks}
+%\title{Structured Sequence Prediction with \\ Graph Convolutional Recurrent Networks}
 %\title{Graph Convolutional Recurrent Network\\
 %for Spatio-Temporal Sequence Modeling}
 %\title{Graph Convolutional Recurrent Neural Network}
@@ -74,46 +74,44 @@ NTU, Singapore \\
 \maketitle
 
 \begin{abstract}
-	This paper introduces and studies a Graph Convolutional Recurrent
-	Network, a Deep Learning model able to represent and predict structured
-	sequences. It is a generalization of classical recurrent neural networks to
-	data structured by a weighted graph. So far the only underlying structures that have been explored in the sequence modeling literature are the linear chain, the 2D grid and the tree.
-	Such structured sequences can be e.g. videos, a spatio-temporal sequence
-	where the structuring graph is a 2D grid, measurements on a network of
-	sensors or random walks on a vocabulary graph for language modeling.
-	This work introduces a general framework for structured sequence modeling,
-	studies two possible architectures and apply the model to two practical
-	problems: a benchmark moving MNIST dataset and a language model on the Penn
-	Treebank. Experiments \todo{show that our network}
+	This paper introduces Graph Convolutional Recurrent
+	Network (GCRN), a deep learning model able to predict structured
+	sequences of data. GCRN is a generalization of classical recurrent neural networks (RNN) to
+	data structured by any arbitrary graph. 
+ 	%So far the only underlying structures that have been explored in the sequence modeling literature are the linear chain, the 2D grid and the tree.
+	Such structured sequences can be series of frames in videos, spatio-temporal measurements on a network of
+	sensors, or random walks on a vocabulary graph for natural language modeling.
+	The proposed model combines convolutional neural networks (CNN) on graphs to identify spatial structures and RNN to find dynamic patterns. We study two possible architectures of GCRN, and apply the models to two practical
+	problems: predicting moving MNIST data, and modeling natural language with the Penn
+	Treebank dataset [TO CHECK!!!]. Experiments show that exploiting simultaneously graph spatial and dynamic information about data can improve both precision and learning speed.
 \end{abstract}
+
+	
 
 \section{Introduction}
 
 % Motivate using the unsupervised argument ?
 % LSTM have been used widely. No need, well known fact.
 
-Many real-world data can be cast as structured sequences, spatio-temporal
-sequences being a special case. A well-studied example is the video, where
-succeeding frames give the temporal structure and the spatial structure is
-given by a 2D grid. Many works, such as \citet{cnnlstm1, cnnlstm2, cnnlstm3},
-did leverage a combination of CNNs and RNNs to exploit such spatial and
-temporal regularities. Their models are able to process (possibly time-varying)
-visual inputs for variable-length prediction. The architectures consist of a
-CNN for visual feature extraction followed by a RNN for sequence learning. Such
-architectures have since been widely used for video activity recognition, image
+Many real-world data can be cast as structured sequences, with spatio-temporal
+sequences being a special case. A well-studied example of spatio-temporal data are videos, where
+succeeding frames share temporal and spatial structures. Many works, such as \citet{cnnlstm1, cnnlstm2, cnnlstm3},  leveraged a combination of CNN and RNN to exploit such spatial and
+temporal regularities. Their models are able to process possibly time-varying
+visual inputs for variable-length prediction. These neural network architectures consist of combining
+a CNN for visual feature extraction followed by a RNN for sequence learning. Such
+architectures have been successful used for video activity recognition, image
 captioning and video description.
 
 More recently, interest has grown in properly fusing the CNN and RNN models for
 spatio-temporal sequence modeling. Inspired from language modeling,
-\citet{video_language_model} proposed a model which ability to discover both
-spatial and temporal correlations is useful to represent complex deformations
-and motion patterns. They show that prediction of the next video frame and
-interpolation of intermediate frames can be done by building a RNN-based
+\citet{video_language_model} proposed a model to represent complex deformations
+and motion patterns by discovering both spatial and temporal correlations. They showed that prediction of the next video frame and
+interpolation of intermediate frames can be achieved by building a RNN-based
 language model on the visual words obtained by quantizing the image patches.
-Their highest-performing model, the recursive CNN (rCNN), uses convolutions in
-the input and states. \citet{convlstm} have then proposed the convolutional
+Their highest-performing model, recursive CNN (rCNN), uses convolutions for both
+ inputs and states. \citet{convlstm}  then proposed the convolutional
 LSTM network (convLSTM), a recurrent model for spatio-temporal sequence
-modeling which uses 2D convolutions to leverage the spatial correlations in the
+modeling which uses 2D-grid convolution to leverage the spatial correlations in
 input data. They successfully applied their model to the prediction of the
 evolution of radar echo maps for precipitation nowcasting.
 
@@ -126,25 +124,31 @@ evolution of radar echo maps for precipitation nowcasting.
 % LSTM (FC-LSTM) layer adopted by them does however not encode spatial
 % relations. 
 
-The spatial structure of many important problems are however not simple grids,
-e.g. data measured from a network of meteorological stations whose spatial
-distribution is not regular, maybe the spatial sampling is even heterogeneous.
-The structure may not even be spatial, as is the case for social or biological
-networks. The realization that sentences are random walks on vocabulary graphs,
-a view popularized by \cite{word2vec}, allows us to cast a language model as a
-structured sequence model.
+The spatial structure of many important problems may however not be as simple as regular grids. For instance, 
+the data measured from meteorological stations lie on a irregular grid, i.e. a network of heterogeneous spatial
+distribution of stations. More challenging, the spatial structure of data may not even be spatial, as it is the case for social or biological networks. Eventually, the interpretation that sentences can be regarded as random walks on vocabulary graphs,
+a view popularized by \cite{word2vec}, allows us to cast language analysis problems as graph-structured sequence models.
 
-This work proposes an extension of the convLSTM model from \cite{convlstm} to
-the more general setting where the sequence is structured by a weighted graph.
-The model builds on our recently proposed graph ConvNet framework
-\citep{gcnn}, extended to time-varying graph signals.
+This work leverages on the recent models of \cite{gcnn,video_language_model,convlstm} to design the GCRN model for modeling and predicting time-varying graph-based data. The core idea is to merge CNN for graph-structured data and RNN to identify simultaneously meaningful spatial structures and dynamic patterns. A generic illustration of the proposed GCRN architecture is given by Figure \ref{fig1}.
 
-\begin{figure}[t]
+
+\begin{figure}[ht]
 	\centering
 	%\framebox[4.0in]{$\;$}
-	\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
-	\caption{\todo{Comparison: linear, tree, graph 1-neighborhood, graph conv}}
+	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
+	\includegraphics[width=10cm]{figures/gcnn_rnn}
+	\caption{Illustration of the proposed model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks.} 
+	\label{fig1}
 \end{figure}
+
+
+
+%\begin{figure}[t]
+%	\centering
+%	%\framebox[4.0in]{$\;$}
+%	\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
+%	\caption{\todo{Comparison: linear, tree, graph 1-neighborhood, graph conv}}
+%\end{figure}
 
 % capture statistical properties in the joint domain
 
@@ -169,11 +173,9 @@ the $n$-gram language model (with $n = J+1$), where $P(x_{t+1} | x_{t-J+1},
 \ldots, x_t)$ models the probability of word $x_{t+1}$ to appear conditioned on
 the past $J$ words in the sentence \citep{seq_graves}.
 
-In this paper, we are interested in structured sequences, i.e. sequences where
-some dimensions of the observations $x_t$ are not independent but linked by
-pairwise relationships. We propose a generalization to any structure who can be
-modeled by a weighted graph, which is a universal representation of
-heterogeneous pairwise relationships. We can view $x_t$ as a graph signal, i.e.
+In this paper, we are interested in special structured sequences, i.e. sequences where features of the observations $x_t$ are not independent but linked by pairwise relationships. Such relationships are universally modeled by weighted graphs. 
+
+Data $x_t$ can be viewed as a graph signal, i.e.
 a signal defined on an undirected and weighted graph $\G = (\V, \E, A)$, where
 $\V$ is a finite set of $|\V| = n$ vertices, $\E$ is a set of edges and $A \in
 \R^{n \times n}$ is a weighted adjacency matrix encoding the connection weight
@@ -181,18 +183,16 @@ between two vertices. A signal $x_t: \V \rightarrow \R^{d_x}$ defined on the
 nodes of the graph may be regarded as a matrix $x_t \in \R^{n \times d_x}$
 whose column $i$ is the $d_x$-dimensional value of $x_t$ at the $i^{th}$ node.
 While the number of free variables in a structured sequence of length $K$ is in
-principle $\bO(n^K {d_x}^K)$, we sought to exploit the structure of the space
+principle $\bO(n^K {d_x}^K)$, we seek to exploit the structure of the space
 of possible predictions to reduce the dimensionality and hence make those
-problems tractable.
+problems more tractable.
 
 \subsection{Long Short-Term Memory}
 
 % Leaving the structure apart, a structured sample could be processed by a classical LSTM.
 
-Long short-term memory (LSTM), a recurrent neural network (RNN) architecture
-introduced by \citet{lstm} and designed to prevent the gradient from vanishing
-too quickly, has proven stable and powerful for modeling long-range
-dependencies in various general-purpose sequence modeling tasks
+A special class of recurrent neural networks (RNN) that prevents the gradient from vanishing
+too quickly is the popular long short-term memory (LSTM) introduced by \citet{lstm}. This architecture has proven stable and powerful for modeling long-range dependencies in various general-purpose sequence modeling tasks
 \citep{seq_graves, moving_mnist, seq2seq}. A fully-connected LSTM (FC-LSTM) may
 be seen as a multivariate version of LSTM where the input $x_t \in \R^{d_x}$,
 cell output $h_t \in [-1,1]^{d_h}$ and states $c_t \in \R^{d_h}$ are all
@@ -225,29 +225,28 @@ $h$. The optional peephole connections $w_{c\cdot} \odot c_t$, introduced by
 \subsection{Convolutional Neural Networks on Graphs} \label{sec:graphconv}
 
 Generalizing convolutional neural networks (CNNs) to arbitrary graphs is a
-recent area of interest. Two approaches are explored in the literature: (i) a
+recent area of interest. Two approaches have been explored in the literature: (i) a
 generalization of the spatial definition of a convolution \citep{gcnn_masci,
 gcnn_niepert} and (ii), a multiplication in the graph Fourier domain by the way
 of the convolution theorem \citep{gcnn_bruna, gcnn}. \citet{gcnn_masci}
 introduced a spatial generalization of CNNs to 3D meshes. The authors used
 geodesic polar coordinates to define convolution operations on mesh patches,
 and formulated a deep learning architecture which allows comparison across
-different meshes.  Hence, this method requires a manifold and is not
+different meshes.  Hence, this method is tailored to manifolds and is not directly
 generalizable to arbitrary graphs. \citet{gcnn_niepert} proposed a spatial
 approach which may be decomposed in three steps: (i) select a node, (ii)
 construct its neighborhood and (iii) normalize the selected sub-graph, i.e.
 order the neighboring nodes. The extracted patches are then fed into a
-conventional 1D CNN. As graphs generally don't possess a natural ordering
+conventional 1D Euclidean CNN. As graphs generally do not possess a natural ordering
 (temporal, spatial or otherwise), a labeling procedure should be used to impose
 it. \citet{gcnn_bruna} were the first to introduce the spectral framework
-described below in the context of graph CNNs. The major drawback of their
-method is its $\bO(n^2)$ complexity. \citet{gcnn} essentially fixed that,
-offering a linear complexity $\bO(|\E|)$ while providing strictly localized
+described below in the context of graph CNNs. The major drawback of this
+method is its $\bO(n^2)$ complexity, which was overcome with the technique of \citet{gcnn}, which offers a linear complexity $\bO(|\E|)$ and provides strictly localized
 filters. \citet{gcnn_kipf} took a first-order approximation of the spectral
 filters proposed by \citet{gcnn} and successfully used it for semi-supervised
-classification of nodes. While we'll focus on the framework introduced by
+classification of nodes. While we focus on the framework introduced by
 \citet{gcnn}, the proposed model is agnostic to the choice of the graph
-convolution operator $\ast_\G$.  \todo{atwood, duvenaud ?}
+convolution operator $\ast_\G$. % \todo{atwood, duvenaud ?}
 
 As it is difficult to express a meaningful translation operator in the vertex
 domain \citep{gcnn_bruna, gcnn_niepert}, \citet{gcnn} chose a spectral
@@ -291,7 +290,7 @@ $T_0 = 1$ and $T_1 = x$, one can evaluate \eqnref{graph_conv_cheby} in
 $\bO(K|\E|)$ operations, i.e. linearly with the number of edges. Note that as
 the filtering operation \eqnref{graph_conv_cheby} is an order $K$ polynomial of
 the Laplacian, it is $K$-localized and depends only on nodes that are at
-maximum $K$ hops away from the central node, the $K$-neighborhood. The reader
+maximum $K$ hops away from the central node, the $K$-neighborhood. %The reader
 is referred to \cite{gcnn} for details and an in-depth discussion.
 
 \section{Related Works}
@@ -301,9 +300,9 @@ is referred to \cite{gcnn} for details and an in-depth discussion.
 %\paragraph{Recurrent convolutional neural network (rCNN).}
 %\paragraph{Non-convolutional approaches.}
 
-\citet{convlstm} introduced a model for grid-structured sequences, which can be
-seen as a special case of the proposed model where the graph is a grid and the
-nodes are ordered. Their model is essentially the classical FC-LSTM
+\citet{convlstm} introduced a model for regular grid-structured sequences, which can be
+seen as a special case of the proposed model where the graph is an image grid where the
+nodes are well ordered. Their model is essentially the classical FC-LSTM
 \eqnref{lstm_fc} where the multiplications by dense matrices $W$ have been
 replaced by convolutions with kernels $W$:
 \begin{align} \label{eqn:lstm_conv}
@@ -338,7 +337,7 @@ where the convolutional kernels $W_h \in \R^{d_h \times d_h}$ are restricted to
 filters of size 1x1 (effectively a fully connected layer shared across all
 spatial locations).
 
-Remarking that natural language exhibits syntactic properties that naturally
+Observing that natural language exhibits syntactic properties that naturally
 combine words into phrases, \citet{treelstm} proposed a model for
 tree-structured topologies, where each LSTM has access to the states of its
 children. They obtained state-of-the-art results on semantic relatedness and
@@ -360,32 +359,36 @@ connected nodes and edges.
 
 % \citet{deepstruct} combined Markov random fields with deep learning
 
-\section{Proposed Model}
+\section{Proposed GCRN Models}
 
 % Two models:
 % 1. conv output to vRNN / LSTM
 % 2. integrating conv and LSTM
 
-As is common practice in Computer Vision \citep{cnnlstm1, cnnlstm2, cnnlstm3},
-a first approach for an end-to-end learning system taking as input time-varying
-and graph-structured data is to stack a graph ConvNet, defined as
-\eqnref{graph_conv_cheby}, for feature extraction and a FC-LSTM, defined as
-\eqnref{lstm_fc}, for sequence learning. Such an architecture may be enough to
-capture the data distribution by exploiting local stationarity and
-compositionality properties as well as the dynamic properties.
+We propose two natural architectures for GCRN that are quite natural, and investigate their performances on real-world applications in Section \ref{experiments}.
 
-\begin{figure}[ht]
-	\centering
-	%\framebox[4.0in]{$\;$}
-	\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
-%	\includegraphics[width=10cm]{figures/gcnn_rnn.eps}
-	\caption{Illustrative picture of the proposed model for spatio-temporal prediction of graph-structured data. The technique simultaneously combines CNN on graphs to identify spatial structures and RNN to find dynamic patterns. RNN can be easily exchanged with LSTM networks.}
-\end{figure}
+
+As a first model, we consider a natural end-to-end learning system, meaning that we stack a graph CNN, defined as
+\eqnref{graph_conv_cheby}, for feature extraction and a LSTM, defined as \eqnref{lstm_fc}, for sequence learning: \begin{align} \label{eqn:lstm_graph_v1}
+\begin{split}
+	x_t^{\textrm{CNN}} &=  \textrm{CNN}_\G(x_t)\\
+	i &= \sigma(W_{xi} x_t^{\textrm{CNN}} + W_{hi} h_{t-1}  +
+	            w_{ci} \odot c_{t-1} + b_i), \\
+	f &= \sigma(W_{xf} x_t^{\textrm{CNN}} + W_{hf} h_{t-1} + w_{cf} \odot c_{t-1} + b_f), \\
+	c_t &= f_t \odot c_{t-1} + i_t \odot \tanh(W_{xc} x_t^{\textrm{CNN}} + W_{hc} h_{t-1} + b_c), \\
+	o &= \sigma(W_{xo} x_t^{\textrm{CNN}} + W_{ho} h_{t-1} + w_{co} \odot c_t + b_o), \\
+	h_t &= o \odot \tanh(c_t).
+\end{split}
+\end{align}
+In that setting, the input matrix $x_t \in \R^{n \times d_x}$ may represent the
+observation of $d_x$ measurements at time $t$ of a dynamical system over a
+network whose organization is given by a graph $\G$. $x_t^{\textrm{CNN}}$ is the output of the graph CNN gate. For a proof of concept, we simply choose here $x_t^{\textrm{CNN}} = W^{\textrm{CNN}} \ast_\G x_t$, where $W^{\textrm{CNN}} \in \R^{K \times d_x \times d_x}$ are the Chebyshev coefficients  for the graph convolutional kernels of support $K$. The model also holds spatially distributed hidden and cell states of size $d_h$ given by the matrices $c_t, h_t \in \R^{n \times d_h}$. Peepholes are controlled by $w_{c\cdot} \in \R^{n \times d_h}$. The weights $W_{h\cdot} \in
+\R^{ d_h \times d_h}$ and $W_{x\cdot} \in \R^{d_h \times d_x}$ are the parameters of the fully connected layers.  Such architecture \eqnref{lstm_graph_v1} may be enough to capture the data distribution by exploiting local stationarity and compositionality properties as well as the dynamic properties.
 
 % Similarly to \citet{video_language_model, convlstm}
-As a second model, we propose to take the convLSTM model \eqnref{lstm_conv} and
-replace the 2D convolution $\ast$ by the generalized graph convolution
-$\ast_\G$, as defined in \eqnref{graph_conv_cheby}, such that:
+As a second model, we generalize the convLSTM model \eqnref{lstm_conv} to graphs by simply 
+replacing the Euclidean 2D convolution $\ast$ by the graph convolution
+$\ast_\G$:
 \begin{align} \label{eqn:lstm_graph}
 \begin{split}
 	i &= \sigma(W_{xi} \ast_\G x_t + W_{hi} \ast_\G h_{t-1} +
@@ -399,12 +402,7 @@ $\ast_\G$, as defined in \eqnref{graph_conv_cheby}, such that:
 	h_t &= o \odot \tanh(c_t).
 \end{split}
 \end{align}
-In that setting, the input matrix $x_t \in \R^{n \times d_x}$ may represent the
-observation of $d_x$ measurements at time $t$ of a dynamical system over a
-network of $n$ sensors whose organization is given by the weighted graph $\G$.
-The model holds spatially distributed hidden and cell states of size $d_h$
-given by the matrices $c_t, h_t \in \R^{n \times d_h}$. Peepholes are
-controlled by $w_{c\cdot} \in \R^{n \times d_h}$. The support $K$ of the graph
+In that setting, the support $K$ of the graph
 convolutional kernels defined by the Chebyshev coefficients $W_{h\cdot} \in
 \R^{K \times d_h \times d_h}$ and $W_{x\cdot} \in \R^{K \times d_h \times d_x}$
 determines the number of parameters, which is independent of the number of
@@ -434,7 +432,22 @@ encoder, which processes the input sequence, and a decoder, which generates an
 output sequence. A standard practice for machine translation using RNNs
 \citep{gru, seq2seq}.
 
+
+
+
 \section{Experiments}
+\label{experiments}
+
+
+
+
+\subsection{Language Modeling on Penn Treebank}
+
+The Penn Treebank dataset has 1,036,580 words, which is already split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary is 10,000. 
+
+
+
+\newpage
 
 Proposing Graph Convolutional Recurrent Neural Networks(GCRNN) applies two benchmark datasets: moving MNIST\citet{moving_mnist} and Penn Tree Bank\citet{ptb}. Experiments are mainly focuses on how the graph convolution give effects on RNN model by comparing conventional RNN models with GCRNN. In moving MNIST experiments, we shows 2D grid structure is one of special case of graph structure which GCRNN can easily fit to the model as convolutional RNN, while Language modeling on Penn Tree Bank demonstrates graph structure on words helps 
 
