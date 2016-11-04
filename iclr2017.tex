@@ -99,7 +99,7 @@ succeeding frames share temporal and spatial structures. Many works, such as \ci
 temporal regularities. Their models are able to process possibly time-varying
 visual inputs for variable-length prediction. These neural network architectures consist of combining
 a CNN for visual feature extraction followed by a RNN for sequence learning. Such
-architectures have been successful used for video activity recognition, image
+architectures have been successfully used for video activity recognition, image
 captioning and video description.
 
 More recently, interest has grown in properly fusing the CNN and RNN models for
@@ -211,7 +211,7 @@ where $\odot$ denotes the Hadamard product, $\sigma(\cdot)$ the sigmoid
 function $\sigma(x) = 1 / (1+e^{-x})$ and $i, f, o \in [0,1]^{d_h}$ are the
 input, forget and output gates. The weights $W_{x\cdot} \in \R^{d_h \times
 d_x}$, $W_{h\cdot} \in \R^{d_h \times d_h}$, $w_{c\cdot} \in \R^{d_h}$ and
-biases $b_i, b_f, b_c, b_o \in R^{d_h}$ are the model parameters.\footnote{A
+biases $b_i, b_f, b_c, b_o \in \R^{d_h}$ are the model parameters.\footnote{A
 practical trick is to initialize the biases $b_i$, $b_f$ and $b_o$ to one such
 that the gates are initially open.} Such a model is called fully-connected
 because the dense matrices $W$ linearly combine all the components of $x$ and
