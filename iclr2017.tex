@@ -504,9 +504,9 @@ Numerical experiments show:
 
 \begin{figure}[h!]
 \centering
-\subfigure[]{\includegraphics[height=5cm]{figures/matrixW.pdf}}
+\subfigure[]{\includegraphics[height=5cm]{figures/matrixW}}
 \hspace{0.5cm}
-\subfigure[]{\includegraphics[height=5cm]{figures/embedding.pdf}}
+\subfigure[]{\includegraphics[height=5cm]{figures/embedding}}
 \caption{Left figure shows the adjacency matrix of word embeddings, and right figure presents a 3D visualisation of words' structure.}
 \label{fig2}
 \end{figure}
@@ -544,11 +544,12 @@ GRU-GCNN-M1 & 30.03 & 231.22 \\
 
 
 \begin{figure}[h!]
-\centering
-\subfigure[]{\includegraphics[height=4cm]{figures/train_ptb.pdf}}
-\subfigure[]{\includegraphics[height=4cm]{figures/test_ptb.pdf}}
-\caption{Dynamic of learning process, perplexity vs. epoch, for the investigated models on the training and testing sets.}
-\label{fig3}
+	\centering
+	\subfigure{\includegraphics[width=0.48\linewidth]{figures/train_ptb}}
+	\hfill
+	\subfigure{\includegraphics[width=0.48\linewidth]{figures/test_ptb}}
+	\caption{Dynamic of learning process, perplexity vs. epoch, for the investigated models on the training and testing sets.}
+	\label{fig3}
 \end{figure}
 
 \section{Conclusion and Future Work}
@@ -566,8 +567,11 @@ This work aims at learning spatio-temporal structures from graph-structured and 
 
 %\subsubsection*{Acknowledgments}
 
-\newpage
-\bibliography{iclr2017}
-\bibliographystyle{iclr2017}
+\clearpage
+{
+	\small
+	\bibliography{iclr2017}
+	\bibliographystyle{iclr2017}
+}
 
 \end{document}
