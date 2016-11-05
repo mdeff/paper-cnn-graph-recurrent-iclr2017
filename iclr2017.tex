@@ -456,7 +456,9 @@ frames for prediction) and contain two handwritten digits bouncing inside a $64
 minimizing the cross-entropy loss using back-propagation through time (BPTT)
 and RMSProp with a learning rate of $10^{-3}$ and a decay rate of 0.9. All
 implementations are based on their Theano code and
-dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}}
+dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} The
+graph is constructed by connecting each pixel with their four closest
+neighbors.
 % Also, we perform early-stopping on the validation set.
 
 \begin{table}
@@ -490,7 +492,11 @@ and (iii) the proposed LSTM+GCNN defined by \eqnref{lstm_graph_v2} with three
 different values of $K$. These results show the ability of the proposed method
 to capture spatio-temporal structures. Surprisingly, graph CNNs can offer
 better performance than regular CNNs, even when the domain is a 2D grid and the
-data is images, the problem CNNs were initially developed for.
+data is images, the problem CNNs were initially developed for. An explanation
+may be the rotation invariance inherently provided by the graph structure. As
+the nodes are not ordered, there is no notion of an edge going up, down, on the
+right or on the left. All edges are equal.
+>>>>>>> Stashed changes
 
 \subsection{Natural Language Modeling on Penn Treebank}
 
