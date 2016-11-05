@@ -486,6 +486,12 @@ neighbors.
 	\caption{Learning dynamic of the investigated models.}
 \end{figure}
 
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{figures/result_mmnist}
+	\caption{An example showing a run. First row is the input sequence, second the ground truth and third the predictions of the 1-layer LSTM+GCNN with $K=5$.}
+\end{figure}
+
 \tabref{moving_mnist} shows the performance of various models: (i) the baseline
 FC-LSTM from \citet{convlstm}, (ii) the 1-layer LSTM+CNN from \citet{convlstm}
 and (iii) the proposed LSTM+GCNN defined by \eqnref{lstm_graph_v2} with three
@@ -495,8 +501,7 @@ better performance than regular CNNs, even when the domain is a 2D grid and the
 data is images, the problem CNNs were initially developed for. An explanation
 may be the rotation invariance inherently provided by the graph structure. As
 the nodes are not ordered, there is no notion of an edge going up, down, on the
-right or on the left. All edges are equal.
->>>>>>> Stashed changes
+right or on the left. All edges are treated equal.
 
 \subsection{Natural Language Modeling on Penn Treebank}
 
