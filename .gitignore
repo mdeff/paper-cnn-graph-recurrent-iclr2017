@@ -2,6 +2,7 @@
 .DS_Store
 
 iclr2017.pdf
+figures/moving_mnist.pdf
 
 *.aux
 *.fls

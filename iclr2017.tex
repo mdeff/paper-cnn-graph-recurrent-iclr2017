@@ -11,6 +11,9 @@
 \usepackage{subfigure}
 \usepackage{booktabs}
 
+%\setlength{\bibsep}{1.52pt} %comment for arxiv
+%\usepackage{parskip} \setlength{\parskip}{3pt}
+
 %\title{Spatio-Temporal Sequence-to-Sequence Modeling with Graph Convolutional Recurrent Networks}
 %\title{Graph Convolutional Recurrent Network\\
 %for Structured Sequence Modeling}
@@ -45,8 +48,8 @@ EPFL, Switzerland \\
 \texttt{pierre.vandergheynst@epfl.ch} \\
 \And
 Xavier Bresson \\
-NTU, Singapore \\
-\texttt{xavier.bresson@ntu.edu.sg} 
+EPFL, Switzerland \\
+\texttt{xavier.bresson@epfl.ch} 
 }
 
 \newcommand{\fix}{\marginpar{FIX}}
@@ -80,9 +83,9 @@ NTU, Singapore \\
 	This paper introduces Graph Convolutional Recurrent
 	Network (GCRN), a deep learning model able to predict structured
 	sequences of data. Precisely, GCRN is a generalization of classical recurrent neural networks (RNN) to
-	data structured by any arbitrary graph. 
+	data structured by an arbitrary graph. 
  	%So far the only underlying structures that have been explored in the sequence modeling literature are the linear chain, the 2D grid and the tree.
-	Such structured sequences can be series of frames in videos, spatio-temporal measurements on a network of
+	Such structured sequences can represent series of frames in videos, spatio-temporal measurements on a network of
 	sensors, or random walks on a vocabulary graph for natural language modeling.
 	The proposed model combines convolutional neural networks (CNN) on graphs to identify spatial structures and RNN to find dynamic patterns. We study two possible architectures of GCRN, and apply the models to two practical
 	problems: predicting moving MNIST data, and modeling natural language with the Penn
@@ -106,7 +109,7 @@ architectures have been successfully used for video activity recognition, image
 captioning and video description.
 
 More recently, interest has grown in properly fusing the CNN and RNN models for
-spatio-temporal sequence modeling. Inspired from language modeling,
+spatio-temporal sequence modeling. Inspired by language modeling,
 \citet{video_language_model} proposed a model to represent complex deformations
 and motion patterns by discovering both spatial and temporal correlations. They showed that prediction of the next video frame and
 interpolation of intermediate frames can be achieved by building a RNN-based
@@ -217,9 +220,10 @@ d_x}$, $W_{h\cdot} \in \R^{d_h \times d_h}$, $w_{c\cdot} \in \R^{d_h}$ and
 biases $b_i, b_f, b_c, b_o \in \R^{d_h}$ are the model parameters.\footnote{A
 practical trick is to initialize the biases $b_i$, $b_f$ and $b_o$ to one such
 that the gates are initially open.} Such a model is called fully-connected
-because the dense matrices $W$ linearly combine all the components of $x$ and
-$h$. The optional peephole connections $w_{c\cdot} \odot c_t$, introduced by
-\citet{peephole}, have been found to improve performance on certain tasks.
+because the dense matrices $W_{x\cdot}$ and $W_{h\cdot}$ linearly combine all
+the components of $x$ and $h$. The optional peephole connections $w_{c\cdot}
+\odot c_t$, introduced by \citet{peephole}, have been found to improve
+performance on certain tasks.
 
 %The major innovation of LSTM resides in the introduction of the memory cell
 %$c_t$ and the various gates, which together control the flow of information
@@ -261,7 +265,7 @@ Fourier coefficients, as
 %	x \ast_\G y = U((U^Tx) \odot (U^Ty)),
 %\end{equation}
 \begin{equation} \label{eqn:graph_conv}
-	y = \theta \ast_\G x = g_\theta(L) x =
+	y = g_\theta \ast_\G x = g_\theta(L) x =
 	g_\theta(U \Lambda U^T) x = U g_\theta(\Lambda) U^T x \in \R^{n \times d_x},
 \end{equation}
 where $U \in \R^{n \times n}$ is the matrix of eigenvectors and $\Lambda \in
@@ -270,13 +274,13 @@ Laplacian $L = I_n - D^{-1/2} A D^{-1/2} = U \Lambda U^T \in \R^{n \times n}$,
 where $I_n$ is the identity matrix and $D \in \R^{n \times n}$ is the diagonal
 degree matrix with $D_{ii} = \sum_j A_{ij}$ \citep{chung}.  Note that the
 signal $x$ is filtered by $g_\theta$ with an element-wise multiplication of its
-graph Fourier transform $U^T x$ with $\theta$ \citep{gsp}. Evaluating
+graph Fourier transform $U^T x$ with $g_\theta$ \citep{gsp}. Evaluating
 \eqnref{graph_conv} is however expensive, as the multiplication with $U$ is
 $\bO(n^2)$. Furthermore, computing the eigendecomposition of $L$ might be
 prohibitively expensive for large graphs. To circumvent this problem,
 \cite{gcnn} parametrizes $g_\theta$ as a truncated expansion, up to order
 $K-1$, of Chebyshev polynomials $T_k$ such that
-\begin{equation} \label{eq:filt_cheby}
+\begin{equation} \label{eqn:filt_cheby}
 	g_\theta(\Lambda) = \sum_{k=0}^{K-1} \theta_k T_k(\tilde{\Lambda}),
 \end{equation}
 where the parameter $\theta \in \R^K$ is a vector of Chebyshev coefficients and
@@ -284,7 +288,7 @@ $T_k(\tilde{\Lambda}) \in \R^{n \times n}$ is the Chebyshev polynomial of order
 $k$ evaluated at $\tilde{\Lambda} = 2 \Lambda / \lambda_{max} - I_n$. The
 graph filtering operation can then be written as
 \begin{equation} \label{eqn:graph_conv_cheby}
-	y = \theta \ast_\G x = g_\theta(L) x = \sum_{k=0}^{K-1} \theta_k T_k(\tilde{L}) x,
+	y = g_\theta \ast_\G x = g_\theta(L) x = \sum_{k=0}^{K-1} \theta_k T_k(\tilde{L}) x,
 \end{equation}
 where $T_k(\tilde{L}) \in \R^{n \times n}$ is the Chebyshev polynomial of order
 $k$ evaluated at the scaled Laplacian $\tilde{L} = 2 L / \lambda_{max} - I_n$.
@@ -293,7 +297,7 @@ $T_0 = 1$ and $T_1 = x$, one can evaluate \eqnref{graph_conv_cheby} in
 $\bO(K|\E|)$ operations, i.e. linearly with the number of edges. Note that as
 the filtering operation \eqnref{graph_conv_cheby} is an order $K$ polynomial of
 the Laplacian, it is $K$-localized and depends only on nodes that are at
-maximum $K$ hops away from the central node, the $K$-neighborhood. %The reader
+maximum $K$ hops away from the central node, the $K$-neighborhood. The reader
 is referred to \cite{gcnn} for details and an in-depth discussion.
 
 \section{Related Works}
@@ -347,7 +351,7 @@ children. They obtained state-of-the-art results on semantic relatedness and
 sentiment classification. \citet{graphlstm} followed up and proposed a variant
 on graphs. Their sophisticated network architecture obtained state-of-the-art
 results for semantic object parsing on four datasets. In those models, the
-states are gathered from the neighborhood by the way of a weighted sum with
+states are gathered from the neighborhood by way of a weighted sum with
 trainable weight matrices. Those weights are however not shared across the
 graph, which would otherwise have required some ordering of the nodes, alike
 any other spatial definition of graph convolution. Moreover, their formulations
@@ -361,6 +365,10 @@ to each node and edge. Again, the communication is limited to directly
 connected nodes and edges.
 
 % \citet{deepstruct} combined Markov random fields with deep learning
+
+\citet{ggsnn_li} proposed a similar model based on the propagation rule of
+\citet{gnn_scarcelli}. They showed stat-of-the-art on a problem from program
+verification.
 
 \section{Proposed GCRN Models}
 \label{sec:our_models}
@@ -387,7 +395,7 @@ We propose two GCRN architectures that are quite natural, and investigate their 
 In that setting, the input matrix $x_t \in \R^{n \times d_x}$ may represent the
 observation of $d_x$ measurements at time $t$ of a dynamical system over a
 network whose organization is given by a graph $\G$. $x_t^{\textrm{CNN}}$ is the output of the graph CNN gate. For a proof of concept, we simply choose here $x_t^{\textrm{CNN}} = W^{\textrm{CNN}} \ast_\G x_t$, where $W^{\textrm{CNN}} \in \R^{K \times d_x \times d_x}$ are the Chebyshev coefficients  for the graph convolutional kernels of support $K$. The model also holds spatially distributed hidden and cell states of size $d_h$ given by the matrices $c_t, h_t \in \R^{n \times d_h}$. Peepholes are controlled by $w_{c\cdot} \in \R^{n \times d_h}$. The weights $W_{h\cdot} \in
-\R^{ d_h \times d_h}$ and $W_{x\cdot} \in \R^{d_h \times d_x}$ are the parameters of the fully connected layers.  Such architecture \eqnref{lstm_graph_v1} may be enough to capture the data distribution by exploiting local stationarity and compositionality properties as well as the dynamic properties.
+\R^{ d_h \times d_h}$ and $W_{x\cdot} \in \R^{d_h \times d_x}$ are the parameters of the fully connected layers. An architecture such as \eqnref{lstm_graph_v1} may be enough to capture the data distribution by exploiting local stationarity and compositionality properties as well as the dynamic properties.
 
 % Similarly to \citet{video_language_model, convlstm}
 {\it Model 2.} We generalize the convLSTM model \eqnref{lstm_conv} to graphs by simply 
@@ -406,17 +414,20 @@ $\ast_\G$:
 	h_t &= o \odot \tanh(c_t).
 \end{split}
 \end{align}
-In that setting, the support $K$ of the graph
-convolutional kernels defined by the Chebyshev coefficients $W_{h\cdot} \in
-\R^{K \times d_h \times d_h}$ and $W_{x\cdot} \in \R^{K \times d_h \times d_x}$
-determines the number of parameters, which is independent of the number of
-nodes $n$. In a distributed computing setting, $K$ controls the communication
-overhead, i.e. the number of nodes a node $i$ should exchange with in order to
-compute its local states.
+In that setting, the support $K$ of the graph convolutional kernels defined by
+the Chebyshev coefficients $W_{h\cdot} \in \R^{K \times d_h \times d_h}$ and
+$W_{x\cdot} \in \R^{K \times d_h \times d_x}$ determines the number of
+parameters, which is independent of the number of nodes $n$.  To keep the
+notation simple, we write $W_{xi} \ast_\G x_t$ to mean a graph convolution of
+$x_t$ with $d_h d_x$ filters which are functions of the graph Laplacian $L$
+parametrized by $K$ Chebyshev coefficients, as noted in \eqnref{filt_cheby} and
+\eqnref{graph_conv_cheby}. In a distributed computing setting, $K$ controls
+the communication overhead, i.e. the number of nodes any given node $i$ should
+exchange with in order to compute its local states.
 
 The proposed blend of RNNs and graph CNNs is not limited to LSTMs and is
 straightforward to apply to any kind of recursive networks. For example, a
-vanilla RNN $h_t = \tanh(W_x x + W_h h)$ would be modified as
+vanilla RNN $h_t = \tanh(W_x x_{t} + W_h h_{t-1})$ would be modified as
 \begin{equation} \label{eqn:vrnn_graph}
 	h_t = \tanh(W_x \ast_\G x_t + W_h \ast_\G h_{t-1}),
 \end{equation}
@@ -445,14 +456,16 @@ output sequence. A standard practice for machine translation using RNNs
 
 \subsection{Spatio-Temporal Sequence Modeling on Moving-MNIST}
 
-For this synthetic experiment, we use the publicly available
-dataset\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} generated
-by \citet{convlstm}. All sequences are 20 frames long (10 frames for the input
-and 10 frames for the prediction) and contain two handwritten digits bouncing
-inside a $64 \times 64$ patch. Following the experimental setup of
-\citet{convlstm}, all the models are trained by minimizing the cross-entropy
-loss using back-propagation through time (BPTT) and RMSProp with a learning
-rate of $10^-3$ and a decay rate of 0.9.
+For this synthetic experiment, we use the moving-MNIST dataset generated by
+\citet{convlstm}. All sequences are 20 frames long (10 frames as input and 10
+frames for prediction) and contain two handwritten digits bouncing inside a $64
+\times 64$ patch. Following their experimental setup, all models are trained by
+minimizing the cross-entropy loss using back-propagation through time (BPTT)
+and RMSProp with a learning rate of $10^{-3}$ and a decay rate of 0.9. All
+implementations are based on their Theano code and
+dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} The
+graph is constructed by connecting each pixel with their four closest
+neighbors.
 % Also, we perform early-stopping on the validation set.
 
 \begin{table}
@@ -462,13 +475,13 @@ rate of $10^-3$ and a decay rate of 0.9.
 		Architecture & Support & Parameters & Running time & Cross-entropy \\
 		\midrule
 		FC-LSTM \citep{convlstm} & N/A & 142,667,776 & N/A & 4832 \\
-		LSTM+CNN \citep{convlstm} & $5 \times 5$ & 13,524,496 & 2.1 & 3982 \\
-		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 4438\\
-		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3741\\
-		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & N/A \\
+		LSTM+CNN \citep{convlstm} & $5 \times 5$ & 13,524,496 & 2.1 & 3841 \\
+		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 4132\\
+		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3521\\
+		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & 3445\\
 		\bottomrule
 	\end{tabular}
-	\caption{Comparison between models.}
+	\caption{Comparison between models. Cross-entropy of FC-LSTM is taken from \cite{convlstm}. LSTM-GCNN is Model 2 defined in \eqnref{lstm_graph_v2}.}
 	\label{tab:moving_mnist}
 \end{table}
 
@@ -477,18 +490,29 @@ rate of $10^-3$ and a decay rate of 0.9.
 	%\framebox[4.0in]{$\;$}
 	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
 	\includegraphics[width=\linewidth]{figures/moving_mnist}
-	\caption{Convergence of the various models.} 
+	\caption{Learning dynamic of the investigated models.}
+\end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{figures/result_mmnist}
+	\caption{An example showing a run. First row is the input sequence, second the ground truth and third the predictions of the 1-layer LSTM+GCNN with $K=5$.}
 \end{figure}
 
 \tabref{moving_mnist} shows the performance of various models: (i) the baseline
-FC-LSTM from \citet{convlstm} (performance measure from them), (ii) the 1-layer
-LSTM+CNN from \citet{convlstm} and (iii) the proposed LSTM+GCNN defined by
-\eqnref{lstm_graph_v2} with three different values of $K$. These results show
-the ability of the proposed method to capture spatio-temporal structures.
+FC-LSTM from \citet{convlstm}, (ii) the 1-layer LSTM+CNN from \citet{convlstm}
+and (iii) the proposed LSTM+GCNN defined by \eqnref{lstm_graph_v2} with three
+different values of $K$. These results show the ability of the proposed method
+to capture spatio-temporal structures. Surprisingly, graph CNNs can offer
+better performance than regular CNNs, even when the domain is a 2D grid and the
+data is images, the problem CNNs were initially developed for. An explanation
+may be the rotation invariance inherently provided by the graph structure. As
+the nodes are not ordered, there is no notion of an edge going up, down, on the
+right or on the left. All edges are treated equal.
 
 \subsection{Natural Language Modeling on Penn Treebank}
 
-The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary of this corpus is 10,000. We use the library gensim\footnote{https://radimrehurek.com/gensim/models/word2vec.html} to compute a word2vec model \cite{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embeddings using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. The values of the hyperparameters are as follows; the size of the data batch is 20, the number of temporal steps to unroll is 21, the dimension of the hidden state is 200. The global learning rate is 0.02 for vanilla RNN, 0.1 for LSTM, and 0.1 for GRU. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 8 epochs. Table \ref{tab1} reports the final perplexity values for each investigated model and Figures \ref{fig3}(a-b) plot the perplexity value vs. the epoch number for the training and testing sets. 
+The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary of this corpus is 10,000. We use the gensim library\footnote{https://radimrehurek.com/gensim/models/word2vec.html} to compute a word2vec model \citep{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embedding using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. The values of the hyperparameters are as follows; the size of the data batch is 20, the number of temporal steps to unroll is 21, the dimension of the hidden state is 200. The global learning rate is 0.02 for vanilla RNN, 0.1 for LSTM, and 0.1 for GRU. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 8 epochs. Table \ref{tab1} reports the final perplexity values for each investigated model and Figures \ref{fig3}(a-b) plot the perplexity value vs. the epoch number for the training and testing sets. 
 
 Numerical experiments show:
 \vspace{-0.25cm}
@@ -554,7 +578,7 @@ GRU-GCNN-M1 & 30.03 & 231.22 \\
 
 \section{Conclusion and Future Work}
 
-This work aims at learning spatio-temporal structures from graph-structured and time-varying data. In this context, the main challenge is to identify the best possible architecture that combine simultaneously recurrent neural networks like vanilla RNN, LSTM or GRU with convolutional neural networks for graph-structured data. We have investigated here two architectures, one using a stack of CNN and RNN (Model 1), and one using convLSTM that considers convolutions instead of fully connected operations in the RNN memory (Model 2). We have then considered two applications; video prediction and natural language modeling. Model 2 has showed good performances in the case of video prediction, by improving the results of \citet{convlstm}. Model 1 has also provided promising performances in the case of language modeling, particularly in terms of learning speed. Future work will investigate real-world video prediction. The graph CNN model we have used is rotationally-invariant and such spatial property seems quite attractive in real situations where motion is beyond translation. We will also investigate how to benefit of the fast learning property of our system to speed up language modeling models. Eventually, it will be interested to analyze the underlying dynamical property of generic RNN architectures in the case of graphs. Graph structures may introduce stability property to RNN systems, and prevent them to express unstable dynamic behaviors.
+This work aims at learning spatio-temporal structures from graph-structured and time-varying data. In this context, the main challenge is to identify the best possible architecture that combines simultaneously recurrent neural networks like vanilla RNN, LSTM or GRU with convolutional neural networks for graph-structured data. We have investigated here two architectures, one using a stack of CNN and RNN (Model 1), and one using convLSTM that considers convolutions instead of fully connected operations in the RNN memory (Model 2). We have then considered two applications; video prediction and natural language modeling. Model 2 has shown good performances in the case of video prediction, by improving the results of \citet{convlstm}. Model 1 has also provided promising performances in the case of language modeling, particularly in terms of learning speed. Future work will investigate applications to data naturally structured as dynamic graph signals, for instance fMRI and sensor networks. The graph CNN model we have used is rotationally-invariant and such spatial property seems quite attractive in real situations where motion is beyond translation. We will also investigate how to benefit of the fast learning property of our system to speed up language modeling models. Eventually, it will be interesting to analyze the underlying dynamical property of generic RNN architectures in the case of graphs. Graph structures may introduce stability property to RNN systems, and prevent them to express unstable dynamic behaviors.
 
 
 %We introduced the Graph Convolutional Recurrent Network, an architecture
@@ -567,7 +591,6 @@ This work aims at learning spatio-temporal structures from graph-structured and 
 
 %\subsubsection*{Acknowledgments}
 
-\clearpage
 {
 	\small
 	\bibliography{iclr2017}
