@@ -11,6 +11,9 @@
 \usepackage{subfigure}
 \usepackage{booktabs}
 
+%\setlength{\bibsep}{1.52pt} %comment for arxiv
+%\usepackage{parskip} \setlength{\parskip}{3pt}
+
 %\title{Spatio-Temporal Sequence-to-Sequence Modeling with Graph Convolutional Recurrent Networks}
 %\title{Graph Convolutional Recurrent Network\\
 %for Structured Sequence Modeling}
@@ -363,6 +366,10 @@ connected nodes and edges.
 
 % \citet{deepstruct} combined Markov random fields with deep learning
 
+\citet{GGSNN} proposed a similar model based on the propagation rule of
+\citet{GNN}. They showed stat-of-the-art on a problem from program
+verification.
+
 \section{Proposed GCRN Models}
 \label{sec:our_models}
 
@@ -584,7 +591,6 @@ This work aims at learning spatio-temporal structures from graph-structured and 
 
 %\subsubsection*{Acknowledgments}
 
-\clearpage
 {
 	\small
 	\bibliography{iclr2017}
