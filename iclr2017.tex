@@ -512,16 +512,24 @@ right or on the left. All edges are treated equal.
 
 \subsection{Natural Language Modeling on Penn Treebank}
 
-The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{https://github.com/wojzaremba/lstm} into a training set of 887,521 words, a validation set of 70,390 words, and a test set of 78,669 words. The size of the vocabulary of this corpus is 10,000. We use the gensim library\footnote{https://radimrehurek.com/gensim/models/word2vec.html} to compute a word2vec model \citep{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embedding using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. The values of the hyperparameters are as follows; the size of the data batch is 20, the number of temporal steps to unroll is 21, the dimension of the hidden state is 200. The global learning rate is 0.02 for vanilla RNN, 0.1 for LSTM, and 0.1 for GRU. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 8 epochs. Table \ref{tab1} reports the final perplexity values for each investigated model and Figures \ref{fig3}(a-b) plot the perplexity value vs. the epoch number for the training and testing sets. 
 
-Numerical experiments show:
+
+The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{\url{https://github.com/wojzaremba/lstm}} into a training set of 929k words, a validation set of 73k words, and a test set of 82k words. The size of the vocabulary of this corpus is 10,000. We use the gensim library\footnote{\url{https://radimrehurek.com/gensim/models/word2vec.html}} to compute a word2vec model \citep{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embedding using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. We used the hyperparameters of the small configuration given by the code\footnotemark[5] based on \cite{zaremba2014recurrent}: the size of the data mini-batch is 20, the number of temporal steps to unroll is 20, the dimension of the hidden state is 200. The global learning rate is 1.0 and the norm of the gradient is bounded by 5. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 13 epochs, and dropout value is 0.75. For \cite{zaremba2014recurrent}, the input representation $x_t$ can be either the 200-dim embedding vector of the word, or the 10,000-dim one-hot representation of the word. For our models, the input representation is an one-hot representation of the word. This choice allows us to use the graph structure of the words. 
+
+
+\noindent
+Table \ref{tab1} reports the final train and test perplexity values for each investigated model and Figure \ref{fig3} plots the perplexity value vs. the number of epochs for the train and testing sets with and without dropout regularization. Numerical experiments show:
 \vspace{-0.25cm}
 \begin{enumerate}
-\item Given the same experimental conditions in terms of hyperparameters, the standalone models of vanilla RNN and LSTM are less accurate in the sense of perplexity than their counterparts using the spatial graph information extracted by graph CNN with the GCRN architecture of Model 1 defined in \eqnref{lstm_graph_v1}.
-\item The use of meaningful spatial graph information found by graph CNN speeds up the learning process. The graph structure likely acts a constraint on the learning system that is forced to move in the space of language topics.
-\item Model 1 outperforms significantly Model 2 defined in \eqnref{lstm_graph_v2}. This may result of the large increase of dimensionality in Model 2 as the dimension of the hidden and cell states changes from 200 to 10,000, the size of the vocabulary. A solution would be to downsize the data dimensionality, as done in \cite{convlstm} in the case of image data.
-\item We observe the well-known problem of overfitting for the GCRN architectures based on the LSTM and GRU models, which increases the value of perplexity for the testing set. A solution would be to regularize the learning optimization with dropout such as \cite{srivastava2013improving,zaremba2014recurrent}.
+\item Given the same experimental conditions in terms of architecture and {\it no} dropout regularization, the standalone model of LSTM is more accurate than LSTM using the spatial graph information ($120.16$ vs. $177.14$), extracted by graph CNN with the GCRN architecture of Model 1, Eq. \eqnref{lstm_graph_v1}. 
+\item However, using dropout regularization, the graph LSTM model overcomes the standalone LSTM with perplexity values $98.67$ vs. $112.98$. 
+\item The use of spatial graph information found by graph CNN speeds up the learning process, and overfits the training dataset in the absence of dropout regularization. The graph structure likely acts a constraint on the learning system that is forced to move in the space of language topics.
+\item We performed the same experiments with LSTM and Model 2 defined in \eqnref{lstm_graph_v2}. Model 1 significantly outperformed Model 2, and Model 2 did worse than standalone LSTM. This bad performance may result of the large increase of dimensionality in Model 2 as the dimension of the hidden and cell states changes from 200 to 10,000, the size of the vocabulary. A solution would be to downsize the data dimensionality, as done in \cite{convlstm} in the case of image data.
 \end{enumerate}
+
+
+
+
 
 
 
@@ -537,44 +545,73 @@ Numerical experiments show:
 
 
 
-
-
 \begin{table*}[h!]
  \centering
 {\small
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
 \hline
- Architecture & Train Perplexity & Test Perplexity  \\
+ LSTM Architecture & Parameters & Train Perplexity & Test Perplexity  \\
 \hline
-\hline
-VRNN & 361.26 & 371.77 \\
-VRNN-GCNN-M1 & 115.64 & 180.78 \\
-VRNN-GCNN-M2 & 497.37 & 487.99 \\
-\hline
-\hline
-LSTM & 240.82 & 263.85 \\
-LSTM-GCNN-M1 & 55.98 & 195.07 \\
-LSTM-GCNN-M2 & 658.24 & 614.61 \\
-\hline
-\hline
-GRU & 179.42 & 218.63 \\
-GRU-GCNN-M1 & 30.03 & 231.22 \\
+\cite{zaremba2014recurrent} code\footnotemark[5] + embedding representation & 681,800 & 36.96 & 117.29 \\
+\cite{zaremba2014recurrent} code\footnotemark[5] + one-hot representation & 34,011,600 & 54.32 & 116.67 \\
+Our LSTM code + embedding representation & 681,800 & 48.38 & 120.90 \\
+Our LSTM code + one-hot representation & 34,011,600 & 54.41 & 120.16 \\
+LSTM + GCNN-M1 & 42,011,602 & 18.49 & 177.14 \\
+LSTM + one-hot + dropout  & 34,011,600 & 145.59 & 112.98 \\
+LSTM + GCNN-M1 + dropout & 42,011,602 & 114.29 & {\bf 98.67} \\
 \hline
 \end{tabular}
 }
-\caption{Comparison of investigated models in terms of perplexity. VRNN stands for Vanilla RNN, GCNN is for graph CNN, M1 and M2 refer respectively to GCRN Model 1 defined in \eqnref{lstm_graph_v1}, and GCRN Model 2 in \eqnref{lstm_graph_v2}.} 
+\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^5$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^4$. As our model runs on the original 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCNN stands for graph CNN and M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
 \label{tab1}
 \end{table*}
+
+\footnotetext[5]{\url{https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/ptb\_word\_lm.py}}
+
+
+
+
+
+
+%\begin{table*}[h!]
+% \centering
+%{\small
+%\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+%\hline
+% LSTM Architecture & Train Perplexity & Test Perplexity  \\
+%\hline
+%\cite{zaremba2014recurrent} code\footnotemark[5] + embedding representation & 36.96 & 117.29 \\
+%\cite{zaremba2014recurrent} code\footnotemark[5] + one-hot representation & 54.32 & 116.67 \\
+%Our LSTM code + embedding representation & 48.38 & 120.90 \\
+%Our LSTM code + one-hot representation & 54.41 & 120.16 \\
+%LSTM + GCNN-M1 & 18.49 & 177.14 \\
+%LSTM + one-hot + dropout  & 145.59 & 112.98 \\
+%LSTM + GCNN-M1 + dropout & 114.29 & {\bf 98.67} \\
+%\hline
+%\end{tabular}
+%}
+%\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^5$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^4$. As our model runs on the original 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCNN stands for graph CNN and M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
+%\label{tab1}
+%\end{table*}
+
+
+
 
 
 \begin{figure}[h!]
 	\centering
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/train_ptb}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{figures/fig_ptb_train_small_config}}
 	\hfill
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/test_ptb}}
-	\caption{Dynamic of learning process, perplexity vs. epoch, for the investigated models on the training and testing sets.}
+	\subfigure{\includegraphics[width=0.48\linewidth]{figures/fig_ptb_test_small_config}}
+	\caption{LSTM with and without graph information and dropout regularization: Dynamic of learning processes, that is perplexity vs. epoch for the investigated models on the training and testing sets.}
 	\label{fig3}
 \end{figure}
+
+
+
+
+
+
 
 \section{Conclusion and Future Work}
 
