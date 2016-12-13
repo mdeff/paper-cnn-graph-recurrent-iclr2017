@@ -546,10 +546,10 @@ right or on the left. All edges are treated equal. Experiment on rotational-movi
 \begin{table*}[t]
 	\centering
 	{\small
-		\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
-			\hline
+		\begin{tabular}{ccccccccc}
+			\toprule
 			LSTM Architecture & Parameters & Train Perplexity & Test Perplexity  \\
-			\hline
+			\midrule
 			\cite{zaremba2014recurrent} code\footnotemark[5] + embedding representation & 681,800 & 36.96 & 117.29 \\
 			\cite{zaremba2014recurrent} code\footnotemark[5] + one-hot representation & 34,011,600 & 53.89 & 118.82 \\
 			Our LSTM code + embedding representation & 681,800 & 48.38 & 120.90 \\
@@ -557,12 +557,13 @@ right or on the left. All edges are treated equal. Experiment on rotational-movi
 			LSTM + GCNN-M1 & 42,011,602 & 18.49 & 177.14 \\
 			LSTM + one-hot + dropout  & 34,011,600 & 145.59 & 112.98 \\
 			LSTM + GCNN-M1 + dropout & 42,011,602 & 114.29 & {\bf 98.67} \\
-			\hline
+			\bottomrule
 		\end{tabular}
 	}
 	\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^5$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^4$. As our model runs on the original 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCNN stands for graph CNN and M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
 	\label{tab1}
 \end{table*}
+
 \subsection{Natural Language Modeling on Penn Treebank}
 
 
