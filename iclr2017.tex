@@ -463,7 +463,7 @@ frames for prediction) and contain two handwritten digits bouncing inside a $64
 minimizing the binary cross-entropy loss using back-propagation through time (BPTT)
 and RMSProp with a learning rate of $10^{-3}$ and a decay rate of 0.9. We choose the best model with early-stopping on validation dataset. All
 implementations are based on their Theano code and
-dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the construction of graph, we uses Euclidean distance of pixel location and connecting each pixel with their K-nearest neighbors. For fair comparison with \citep{convlstm}, we launched our experiment with {\it Model2} which is same, except for changing convolutional operator to graph convolution $\ast_\G$. In addition, we conducted additional experiment on rotational moving-MNIST which has rotation property that handwritten digits are rotating while they moves around inside a image. 
+dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the construction of the graph, we use a Euclidean distance of pixel location and connecting each pixel as a node with their K-nearest neighbors. For the fair comparison with \citep{convlstm}, we launched our experiment with {\it Model2} which is same, except for changing the convolutional operator to graph convolution $\ast_\G$. In addition, we conducted an additional experiment on rotational moving-MNIST which has rotation property that handwritten digits are rotating while they move around inside an image. 
 % Also, we perform early-stopping on the validation set.
 
 \begin{table}
@@ -481,7 +481,7 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 		LSTM+GCNN & $K=9$ & 4,873,744 & 2.15 & 3395 (3798) & 3395 (3814)\\
 		\bottomrule
 	\end{tabular}
-	\caption{Comparison between models. Time spending per each mini-batch are written in Running time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm} and the numbers in parenthesis refer to cross-entropy on rotational moving-MNIST. LSTM-GCNN is Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
+	\caption{Comparison between models. Time spending per each mini-batch is written in Running time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm} and the numbers in parenthesis refer to cross-entropy on rotational moving-MNIST. LSTM-GCNN is Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
 	\label{tab:moving_mnist}
 \end{table}
 
@@ -499,7 +499,7 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/mMNIST_1}}
 	\hfill
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/mMNIST_3}}
-	\caption{Cross-entropy on validation set: figure on the left shows the performance of graph cnn with various size of K, while figure on the right shows the performance changes depending on graph structure.}
+	\caption{Cross-entropy on validation set: figure on the left shows the performance of graph cnn with various size of K, while the figure on the right shows the performance changes depending on the graph structure.}
 	\label{mMNIST_graph}
 \end{figure}
 
@@ -525,9 +525,9 @@ with different filter size, and (iii) the proposed LSTM+graph CNN(GCNN) defined 
 different values of $K$. These results show the ability of the proposed method
 to capture spatio-temporal structures. Surprisingly, GCNNs can offer
 better performance than regular CNNs, even when the domain is a 2D grid and the
-data is images, the problem CNNs were initially developed for. One possible explanation can be the number of parameters that GCNN uses. GCNN take much less parameters than regular CNN by sharing the parameter depending on length of connection. Figure \ref{mMNIST_graph} on the left shows that LSTM+CNN($5\times5$) performs similar to LSTM + GCNN with $K = 3$. Because the $5\times5$ convolutional filter corresponds to $K=3$ in GCNN. However, when we increase the filter size as $9\times9$, the performance decreases because the number of parameters are increasing dramatically. Whereas GCNN can outperforms when it increases filter size to $K=7$. One another explanation can be the rotation invariance inherently provided by the graph structure. As
+data is images, the problem CNNs were initially developed for. One possible explanation can be the number of parameters that GCNN uses. GCNN take much less parameters than regular CNN by sharing the parameter depending on the length of the connection. Figure \ref{mMNIST_graph} on the left shows that LSTM+CNN($5\times5$) performs similar to LSTM + GCNN with $K = 3$. Because the $5\times5$ convolutional filter corresponds to $K=3$ in GCNN. However, when we increase the filter size as $9\times9$, the performance decreases because the number of parameters is increasing dramatically. Whereas GCNN can outperforms when it increases filter size to $K=7$. One another explanation can be the rotation invariance inherently provided by the graph structure. As
 the nodes are not ordered, there is no notion of an edge going up, down, on the
-right or on the left. All edges are treated equal. Experiment on rotational-moving MNST can explain rotation invariance property in GCNN. \tabref{moving_mnist} shows the performance gap between moving-MNST and rotational moving-MNST. LSTM+CNN increases the cross-validation loss 488, whereas LSTM+GCNN($K=7$) get 403. The structure of graph also can affect the performance. Figure \ref{mMNIST_graph} on the right shows how the performance changes depending on graph structure. We found that 8-nearest neighbor structure with K=7 performs the best on moving-MNIST. 
+right or on the left. All edges are treated equally. Experiment on rotational-moving MNST can explain rotation invariance property in GCNN. \tabref{moving_mnist} shows the performance gap between moving-MNST and rotational moving-MNST. LSTM+CNN increases the cross-validation loss 488, whereas LSTM+GCNN($K=7$) get 403. The structure of graph also can affect the performance. Figure \ref{mMNIST_graph} on the right shows how the performance changes depending on the graph structure. We found that 8-nearest neighbor structure with K=7 performs the best on moving-MNIST. 
 
 %\tabref{moving_mnist} shows the performance of various models: (i) the baseline
 %FC-LSTM from \citet{convlstm}, (ii) the 1-layer LSTM+CNN from \citet{convlstm}
