@@ -496,7 +496,7 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 	\centering
 	\begin{tabular}{lcccccc}
 		\toprule
-		Architecture & Support & Parameters & Running time & Test(w/o Rot) & Test(Rot) & Gap\\
+		Architecture & Support & Parameters & Run time & Test(w/o Rot) & Test(Rot) & Gap\\
 		\midrule
 		FC-LSTM & N/A & 142,667,776 & N/A & 4832 & - & -\\
 		LSTM+CNN & $5 \times 5$ & 13,524,496 & 2.10 & 3851 & 4339 & 488 \\
@@ -507,7 +507,7 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 		LSTM+GCNN & $K=9$ & 4,873,744 & 2.15 & 3395 & 3814 & 419 \\
 		\bottomrule
 	\end{tabular}
-	\caption{Comparison between models. Time spending per each mini-batch is written in Running time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm} and the numbers in parenthesis refer to cross-entropy on rotational moving-MNIST. LSTM-GCNN is Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
+	\caption{Comparison between models. Time spending per each mini-batch is written in Run time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm}. The two test correspond to moving-MINIST(w/o Rot) result and rotational moving-MNIST(Rot) respectively. LSTM-GCNN uses Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
 	\label{tab:moving_mnist}
 \end{table}
 %\begin{figure}[ht]
