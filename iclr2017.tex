@@ -466,25 +466,42 @@ implementations are based on their Theano code and
 dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the construction of the graph, we use a Euclidean distance of pixel location and connecting each pixel as a node with their K-nearest neighbors. For the fair comparison with \citep{convlstm}, we launched our experiment with {\it Model2} which is same, except for changing the convolutional operator to graph convolution $\ast_\G$. In addition, we conducted an additional experiment on rotational moving-MNIST which has rotation property that handwritten digits are rotating while they move around inside an image. 
 % Also, we perform early-stopping on the validation set.
 
+%\begin{table}
+%	\centering
+%	\begin{tabular}{lccccc}
+%		\toprule
+%		Architecture & Support & Parameters & Running time & Validation & Test\\
+%		\midrule
+%		FC-LSTM & N/A & 142,667,776 & N/A & - & 4832 (-)\\
+%		LSTM+CNN & $5 \times 5$ & 13,524,496 & 2.10 & 3841 (4290)& 3851 (4339)\\
+%		LSTM+CNN & $9 \times 9$ & 43,802,128 & 6.10 & 3899 & 3903 \\
+%		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 3877 (4313)& 3866 (4367)\\
+%		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3491 (3889)& 3495 (3932)\\
+%		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & {\bf 3399 (3777)}& {\bf 3400 (3803)}\\
+%		LSTM+GCNN & $K=9$ & 4,873,744 & 2.15 & 3395 (3798) & 3395 (3814)\\
+%		\bottomrule
+%	\end{tabular}
+%	\caption{Comparison between models. Time spending per each mini-batch is written in Running time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm} and the numbers in parenthesis refer to cross-entropy on rotational moving-MNIST. LSTM-GCNN is Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
+%	\label{tab:moving_mnist}
+%\end{table}
 \begin{table}
 	\centering
-	\begin{tabular}{lccccc}
+	\begin{tabular}{lcccccc}
 		\toprule
-		Architecture & Support & Parameters & Running time & Validation & Test\\
+		Architecture & Support & Parameters & Running time & Test(w/o Rot) & Test(Rot) & Gap\\
 		\midrule
-		FC-LSTM & N/A & 142,667,776 & N/A & - & 4832 (-)\\
-		LSTM+CNN & $5 \times 5$ & 13,524,496 & 2.10 & 3841 (4290)& 3851 (4339)\\
-		LSTM+CNN & $9 \times 9$ & 43,802,128 & 6.10 & - & - \\
-		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 3877 (4313)& 3866 (4367)\\
-		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3491 (3889)& 3495 (3932)\\
-		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & {\bf 3399 (3777)}& {\bf 3400 (3803)}\\
-		LSTM+GCNN & $K=9$ & 4,873,744 & 2.15 & 3395 (3798) & 3395 (3814)\\
+		FC-LSTM & N/A & 142,667,776 & N/A & 4832 & - & -\\
+		LSTM+CNN & $5 \times 5$ & 13,524,496 & 2.10 & 3851 & 4339 & 488 \\
+		LSTM+CNN & $9 \times 9$ & 43,802,128 & 6.10 & 3903 & - & - \\
+		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 3866 & 4367 & 501 \\
+		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3495 & 3932 & 437 \\
+		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & {\bf 3400} & {\bf 3803} & {\bf 403}\\
+		LSTM+GCNN & $K=9$ & 4,873,744 & 2.15 & 3395 & 3814 & 419 \\
 		\bottomrule
 	\end{tabular}
 	\caption{Comparison between models. Time spending per each mini-batch is written in Running time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm} and the numbers in parenthesis refer to cross-entropy on rotational moving-MNIST. LSTM-GCNN is Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
 	\label{tab:moving_mnist}
 \end{table}
-
 %\begin{figure}[ht]
 %	\centering
 %	%\framebox[4.0in]{$\;$}
@@ -527,7 +544,7 @@ to capture spatio-temporal structures. Surprisingly, GCNNs can offer
 better performance than regular CNNs, even when the domain is a 2D grid and the
 data is images, the problem CNNs were initially developed for. One possible explanation can be the number of parameters that GCNN uses. GCNN take much less parameters than regular CNN by sharing the parameter depending on the length of the connection. Figure \ref{mMNIST_graph} on the left shows that LSTM+CNN($5\times5$) performs similar to LSTM + GCNN with $K = 3$. Because the $5\times5$ convolutional filter corresponds to $K=3$ in GCNN. However, when we increase the filter size as $9\times9$, the performance decreases because the number of parameters is increasing dramatically. Whereas GCNN can outperforms when it increases filter size to $K=7$. One another explanation can be the rotation invariance inherently provided by the graph structure. As
 the nodes are not ordered, there is no notion of an edge going up, down, on the
-right or on the left. All edges are treated equally. Experiment on rotational-moving MNST can explain rotation invariance property in GCNN. \tabref{moving_mnist} shows the performance gap between moving-MNST and rotational moving-MNST. LSTM+CNN increases the cross-validation loss 488, whereas LSTM+GCNN($K=7$) get 403. The structure of graph also can affect the performance. Figure \ref{mMNIST_graph} on the right shows how the performance changes depending on the graph structure. We found that 8-nearest neighbor structure with K=7 performs the best on moving-MNIST. 
+right or on the left. All edges are treated equally. Experiment on rotational-moving MNST can explain rotation invariance property in GCNN. \tabref{moving_mnist} shows the performance gap between moving-MNST and rotational moving-MNST. LSTM+CNN($5\times5$) increases the cross-validation loss 488, whereas LSTM+GCNN($K=7$) get 403. The structure of graph also can affect the performance. Figure \ref{mMNIST_graph} on the right shows how the performance changes depending on the graph structure. We found that 8-nearest neighbor structure with K=7 performs the best on moving-MNIST. 
 
 %\tabref{moving_mnist} shows the performance of various models: (i) the baseline
 %FC-LSTM from \citet{convlstm}, (ii) the 1-layer LSTM+CNN from \citet{convlstm}
@@ -539,7 +556,6 @@ right or on the left. All edges are treated equally. Experiment on rotational-mo
 %may be the rotation invariance inherently provided by the graph structure. As
 %the nodes are not ordered, there is no notion of an edge going up, down, on the
 %right or on the left. All edges are treated equal.
-
 
 
 
@@ -563,6 +579,7 @@ right or on the left. All edges are treated equally. Experiment on rotational-mo
 	\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^5$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^4$. As our model runs on the original 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCNN stands for graph CNN and M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
 	\label{tab1}
 \end{table*}
+
 
 \subsection{Natural Language Modeling on Penn Treebank}
 
