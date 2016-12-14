@@ -138,15 +138,23 @@ a view popularized by \cite{word2vec}, allows us to cast language analysis probl
 This work leverages on the recent models of \cite{gcnn,video_language_model,convlstm} to design the GCRN model for modeling and predicting time-varying graph-based data. The core idea is to merge CNN for graph-structured data and RNN to identify simultaneously meaningful spatial structures and dynamic patterns. A generic illustration of the proposed GCRN architecture is given by Figure \ref{fig1}.
 
 
+%\begin{figure}[ht]
+%	\centering
+%	%\framebox[4.0in]{$\;$}
+%	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
+%	\includegraphics[width=10cm]{figures/gcnn_rnn.pdf}
+%	\caption{Illustration of the proposed GCRN model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks.} 
+%	\label{fig1}
+%\end{figure}
+
 \begin{figure}[ht]
 	\centering
-	%\framebox[4.0in]{$\;$}
-	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
-	\includegraphics[width=10cm]{figures/gcnn_rnn.pdf}
-	\caption{Illustration of the proposed GCRN model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks.} 
+	\subfigure{\includegraphics[width=0.65\linewidth]{figures/gcnn_rnn}}
+	\hfill
+	\subfigure{\includegraphics[width=0.30\linewidth]{figures/gcnn_grid}}
+	\caption{Left: Illustration of the proposed GCRN model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks. Right: Example of graph convolution on grid structure with 8 nearest neighbors and K represents the filter size of graph convolution. Depending on the length of connection, the nodes are sharing the same weight.}
 	\label{fig1}
 \end{figure}
-
 
 
 %\begin{figure}[t]
@@ -511,7 +519,7 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 %	\label{mMIST_graph}
 %\end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[t]
 	\centering
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/mMNIST_1}}
 	\hfill
@@ -520,11 +528,11 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 	\label{mMNIST_graph}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[t]
 	\centering
-	\subfigure{\includegraphics[width=0.9\linewidth]{figures/moving_mnist}}
-	\vfill
-	\subfigure{\includegraphics[width=0.9\linewidth]{figures/moving_mnist_rot}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{figures/moving_mnist}}
+	\hfill
+	\subfigure{\includegraphics[width=0.48\linewidth]{figures/moving_mnist_rot}}
 	\caption{Qualitative result for moving-MNIST and rotational moving-MNIST respectively. First row is the input sequence, second the ground truth and third and fourth are the predictions of the LSTM+CNN($5\times5$) and LSTM+GCNN($knn=8, K=7$)}
 	\label{mMNIST_img}
 \end{figure}
@@ -559,6 +567,15 @@ right or on the left. All edges are treated equally. Experiment on rotational-mo
 
 
 
+
+
+
+\subsection{Natural Language Modeling on Penn Treebank}
+
+
+
+The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{\url{https://github.com/wojzaremba/lstm}} into a training set of 929k words, a validation set of 73k words, and a test set of 82k words. The size of the vocabulary of this corpus is 10,000. We use the gensim library\footnote{\url{https://radimrehurek.com/gensim/models/word2vec.html}} to compute a word2vec model \citep{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embedding using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. We used the hyperparameters of the small configuration given by the code\footnotemark[5] based on \cite{zaremba2014recurrent}: the size of the data mini-batch is 20, the number of temporal steps to unroll is 20, the dimension of the hidden state is 200. The global learning rate is 1.0 and the norm of the gradient is bounded by 5. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 13 epochs, and dropout value is 0.75. For \cite{zaremba2014recurrent}, the input representation $x_t$ can be either the 200-dim embedding vector of the word, or the 10,000-dim one-hot representation of the word. For our models, the input representation is an one-hot representation of the word. This choice allows us to use the graph structure of the words. 
+
 \begin{table*}[t]
 	\centering
 	{\small
@@ -579,15 +596,6 @@ right or on the left. All edges are treated equally. Experiment on rotational-mo
 	\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^5$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^4$. As our model runs on the original 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCNN stands for graph CNN and M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
 	\label{tab1}
 \end{table*}
-
-
-\subsection{Natural Language Modeling on Penn Treebank}
-
-
-
-The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{\url{https://github.com/wojzaremba/lstm}} into a training set of 929k words, a validation set of 73k words, and a test set of 82k words. The size of the vocabulary of this corpus is 10,000. We use the gensim library\footnote{\url{https://radimrehurek.com/gensim/models/word2vec.html}} to compute a word2vec model \citep{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embedding using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. We used the hyperparameters of the small configuration given by the code\footnotemark[5] based on \cite{zaremba2014recurrent}: the size of the data mini-batch is 20, the number of temporal steps to unroll is 20, the dimension of the hidden state is 200. The global learning rate is 1.0 and the norm of the gradient is bounded by 5. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 13 epochs, and dropout value is 0.75. For \cite{zaremba2014recurrent}, the input representation $x_t$ can be either the 200-dim embedding vector of the word, or the 10,000-dim one-hot representation of the word. For our models, the input representation is an one-hot representation of the word. This choice allows us to use the graph structure of the words. 
-
-
 \noindent
 Table \ref{tab1} reports the final train and test perplexity values for each investigated model and Figure \ref{fig3} plots the perplexity value vs. the number of epochs for the train and test sets with and without dropout regularization. Numerical experiments show:
 \vspace{-0.25cm}
