@@ -494,19 +494,25 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 %\end{table}
 \begin{table}
 	\centering
-	\begin{tabular}{lcccccc}
+	{\small
+	\begin{tabular}{lccccccc}
 		\toprule
-		Architecture & Support & Parameters & Run time & Test(w/o Rot) & Test(Rot) & Gap\\
+		Architecture & Structure & Filter size & Parameters & Run time & Test(w/o Rot) & Test(Rot) & Gap\\
 		\midrule
-		FC-LSTM & N/A & 142,667,776 & N/A & 4832 & - & -\\
-		LSTM+CNN & $5 \times 5$ & 13,524,496 & 2.10 & 3851 & 4339 & 488 \\
-		LSTM+CNN & $9 \times 9$ & 43,802,128 & 6.10 & 3903 & - & - \\
-		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 3866 & 4367 & 501 \\
-		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3495 & 3932 & 437 \\
-		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & {\bf 3400} & {\bf 3803} & {\bf 403}\\
-		LSTM+GCNN & $K=9$ & 4,873,744 & 2.15 & 3395 & 3814 & 419 \\
+		FC-LSTM & N/A & N/A & 142,667,776 & N/A & 4832 & - & -\\
+		LSTM+CNN & N/A & $5 \times 5$ & 13,524,496 & 2.10 & 3851 & 4339 & 488 \\
+		LSTM+CNN & N/A & $9 \times 9$ & 43,802,128 & 6.10 & 3903 & 4208 & 305 \\
+
+		LSTM+GCNN & $knn=8$ & $K=3$ & 1,629,712 & 0.82 & 3866 & 4367 & 501 \\
+		LSTM+GCNN & $knn=8$ & $K=5$ & 2,711,056 & 1.24 & 3495 & 3932 & 437 \\
+		LSTM+GCNN & $knn=8$ & $K=7$ & 3,792,400 & 1.61 & {\bf 3400} & {\bf 3803} & {\bf 403}\\
+		LSTM+GCNN & $knn=8$ & $K=9$ & 4,873,744 & 2.15 & 3395 & 3814 & 419 \\
+		
+		LSTM+GCNN & $knn=4$ & $K=7$ & 3,792,400 & 1.61 & 3446 & 3844 & 398 \\
+		LSTM+GCNN & $knn=16$ & $K=7$ & 3,792,400 & 1.61 & 3578 & 3963 & 385 \\
 		\bottomrule
 	\end{tabular}
+	}
 	\caption{Comparison between models. Time spending per each mini-batch is written in Run time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm}. The two test correspond to moving-MINIST(w/o Rot) result and rotational moving-MNIST(Rot) respectively. LSTM-GCNN uses Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
 	\label{tab:moving_mnist}
 \end{table}
