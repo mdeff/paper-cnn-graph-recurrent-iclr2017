@@ -7,9 +7,10 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{csquotes}
-\usepackage{graphicx}
+\usepackage{graphicx} \graphicspath{{figures/}}
 \usepackage{subfigure}
 \usepackage{booktabs}
+\usepackage{setspace}
 
 %\setlength{\bibsep}{1.52pt} %comment for arxiv
 %\usepackage{parskip} \setlength{\parskip}{3pt}
@@ -135,27 +136,25 @@ the data measured from meteorological stations lie on a irregular grid, i.e. a n
 distribution of stations. More challenging, the spatial structure of data may not even be spatial, as it is the case for social or biological networks. Eventually, the interpretation that sentences can be regarded as random walks on vocabulary graphs,
 a view popularized by \cite{word2vec}, allows us to cast language analysis problems as graph-structured sequence models.
 
-This work leverages on the recent models of \cite{gcnn,video_language_model,convlstm} to design the GCRN model for modeling and predicting time-varying graph-based data. The core idea is to merge CNN for graph-structured data and RNN to identify simultaneously meaningful spatial structures and dynamic patterns. A generic illustration of the proposed GCRN architecture is given by Figure \ref{fig1}.
+This work leverages on the recent models of
+\cite{gcnn,video_language_model,convlstm} to design the GCRN model for modeling
+and predicting time-varying graph-based data. The core idea is to merge CNN for
+graph-structured data and RNN to identify simultaneously meaningful spatial
+structures and dynamic patterns. A generic illustration of the proposed GCRN
+architecture is given by \figref{gcrn}.
 
-
-%\begin{figure}[ht]
-%	\centering
-%	%\framebox[4.0in]{$\;$}
-%	%\fbox{\rule[-.5cm]{0cm}{5cm} \rule[-.5cm]{\linewidth}{0cm}}
-%	\includegraphics[width=10cm]{figures/gcnn_rnn.pdf}
-%	\caption{Illustration of the proposed GCRN model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks.} 
-%	\label{fig1}
-%\end{figure}
-
-\begin{figure}[ht]
-	\centering
-	\subfigure{\includegraphics[width=0.65\linewidth]{figures/gcnn_rnn}}
-	\hfill
-	\subfigure{\includegraphics[width=0.30\linewidth]{figures/gcnn_grid}}
-	\caption{Left: Illustration of the proposed GCRN model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks. Right: Example of graph convolution on grid structure with 8 nearest neighbors and K represents the filter size of graph convolution. Depending on the length of connection, the nodes are sharing the same weight.}
-	\label{fig1}
+\begin{figure}[t]
+	\begin{minipage}[t]{0.59\linewidth}
+		\includegraphics[width=\linewidth]{gcnn_rnn}
+		\caption{Illustration of the proposed GCRN model for spatio-temporal prediction of graph-structured data. The technique combines at the same time CNN on graphs and RNN. RNN can be easily exchanged with LSTM or GRU networks.}
+		\label{fig:gcrn}
+	\end{minipage} \hfill
+	\begin{minipage}[t]{0.37\linewidth}
+		\includegraphics[width=\linewidth]{gcnn_grid}
+		\caption{Illustration of the neighborhood on an 8-nearest-neighbor grid graph. Isotropic spectral filters of support $K$ have access to nodes at most at $K-1$ hops.}
+		\label{fig:reach}
+	\end{minipage}
 \end{figure}
-
 
 %\begin{figure}[t]
 %	\centering
@@ -374,9 +373,18 @@ connected nodes and edges.
 
 % \citet{deepstruct} combined Markov random fields with deep learning
 
-\citet{ggsnn_li} proposed a similar model based on the propagation rule of
-\citet{gnn_scarcelli}. They showed stat-of-the-art on a problem from program
-verification.
+The closest model to our work is probably the one proposed by \citet{ggsnn_li},
+which showed stat-of-the-art performance on a problem from program
+verification. Whereas they use the iterative procedure of the Graph Neural
+Networks (GNNs) model introduced by \citet{gnn_scarcelli} to propagate node
+representations until convergence, we instead use the graph CNN introduced by
+\citet{gcnn} to diffuse information across the nodes. While their motivations
+are quite different, those models are related by the fact that a spectral
+filter defined as a polynomial of order $K$ can be implemented as a $K$-layer
+GNN.\footnote{The basic idea is to set the transition function as a diffusion
+and the output function such as to realize the polynomial recurrence, then
+stack $K$ of those. See \citet{gcnn} for details.}
+% directed graph
 
 \section{Proposed GCRN Models}
 \label{sec:our_models}
@@ -385,11 +393,13 @@ verification.
 % 1. conv output to vRNN / LSTM
 % 2. integrating conv and LSTM
 
-We propose two GCRN architectures that are quite natural, and investigate their performances in real-world applications in Section \ref{experiments}.
+We propose two GCRN architectures that are quite natural, and investigate their
+performances in real-world applications in Section \ref{experiments}.
 
-
-{\it Model 1.} We first consider a natural end-to-end learning system, meaning that we stack a graph CNN, defined as
-\eqnref{graph_conv_cheby}, for feature extraction and a LSTM, defined as \eqnref{lstm_fc}, for sequence learning: \begin{align} \label{eqn:lstm_graph_v1}
+\paragraph{Model 1.} The most straightforward definition is to stack a graph
+CNN, defined as \eqnref{graph_conv_cheby}, for feature extraction and an LSTM,
+defined as \eqnref{lstm_fc}, for sequence learning:
+\begin{align} \label{eqn:lstm_graph_v1}
 \begin{split}
 	x_t^{\textrm{CNN}} &=  \textrm{CNN}_\G(x_t)\\
 	i &= \sigma(W_{xi} x_t^{\textrm{CNN}} + W_{hi} h_{t-1}  +
@@ -405,9 +415,8 @@ observation of $d_x$ measurements at time $t$ of a dynamical system over a
 network whose organization is given by a graph $\G$. $x_t^{\textrm{CNN}}$ is the output of the graph CNN gate. For a proof of concept, we simply choose here $x_t^{\textrm{CNN}} = W^{\textrm{CNN}} \ast_\G x_t$, where $W^{\textrm{CNN}} \in \R^{K \times d_x \times d_x}$ are the Chebyshev coefficients  for the graph convolutional kernels of support $K$. The model also holds spatially distributed hidden and cell states of size $d_h$ given by the matrices $c_t, h_t \in \R^{n \times d_h}$. Peepholes are controlled by $w_{c\cdot} \in \R^{n \times d_h}$. The weights $W_{h\cdot} \in
 \R^{ d_h \times d_h}$ and $W_{x\cdot} \in \R^{d_h \times d_x}$ are the parameters of the fully connected layers. An architecture such as \eqnref{lstm_graph_v1} may be enough to capture the data distribution by exploiting local stationarity and compositionality properties as well as the dynamic properties.
 
-% Similarly to \citet{video_language_model, convlstm}
-{\it Model 2.} We generalize the convLSTM model \eqnref{lstm_conv} to graphs by simply 
-replacing the Euclidean 2D convolution $\ast$ by the graph convolution
+\paragraph{Model 2.} To generalize the convLSTM model \eqnref{lstm_conv} to
+graphs we replace the Euclidean 2D convolution $\ast$ by the graph convolution
 $\ast_\G$:
 \begin{align} \label{eqn:lstm_graph_v2}
 \begin{split}
@@ -455,12 +464,7 @@ encoder, which processes the input sequence, and a decoder, which generates an
 output sequence. A standard practice for machine translation using RNNs
 \citep{gru, seq2seq}.
 
-
-
-
-\section{Experiments}
-\label{experiments}
-
+\section{Experiments} \label{experiments}
 
 \subsection{Spatio-Temporal Sequence Modeling on Moving-MNIST}
 
@@ -468,52 +472,42 @@ For this synthetic experiment, we use the moving-MNIST dataset generated by
 \citet{convlstm}. All sequences are 20 frames long (10 frames as input and 10
 frames for prediction) and contain two handwritten digits bouncing inside a $64
 \times 64$ patch. Following their experimental setup, all models are trained by
-minimizing the binary cross-entropy loss using back-propagation through time (BPTT)
-and RMSProp with a learning rate of $10^{-3}$ and a decay rate of 0.9. We choose the best model with early-stopping on validation dataset. All
+minimizing the binary cross-entropy loss using back-propagation through time
+(BPTT) and RMSProp with a learning rate of $10^{-3}$ and a decay rate of 0.9.
+We choose the best model with early-stopping on validation set. All
 implementations are based on their Theano code and
-dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the construction of the graph, we use a Euclidean distance of pixel location and connecting each pixel as a node with their K-nearest neighbors. For the fair comparison with \citep{convlstm}, we launched our experiment with {\it Model2} which is same, except for changing the convolutional operator to graph convolution $\ast_\G$. In addition, we conducted an additional experiment on rotational moving-MNIST which has rotation property that handwritten digits are rotating while they move around inside an image. 
-% Also, we perform early-stopping on the validation set.
+dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} The
+adjacency matrix $A$ is constructed as a k-nearest-neighbor (knn) graph with
+Euclidean distance and Gaussian kernel between pixel locations. For a fair
+comparison with \citet{convlstm} defined in \eqnref{lstm_conv}, all GCRN
+experiments are conducted with Model 2 defined in \eqnref{lstm_graph_v2}, which
+is the same architecture with the 2D convolution $\ast$ replaced by a graph
+convolution $\ast_\G$. To further explore the impact of the isotropic property
+of our filters, we generated a variant of the moving MNIST dataset where digits
+are also rotating (see \figref{mMNIST_img}).
 
-%\begin{table}
-%	\centering
-%	\begin{tabular}{lccccc}
-%		\toprule
-%		Architecture & Support & Parameters & Running time & Validation & Test\\
-%		\midrule
-%		FC-LSTM & N/A & 142,667,776 & N/A & - & 4832 (-)\\
-%		LSTM+CNN & $5 \times 5$ & 13,524,496 & 2.10 & 3841 (4290)& 3851 (4339)\\
-%		LSTM+CNN & $9 \times 9$ & 43,802,128 & 6.10 & 3899 & 3903 \\
-%		LSTM+GCNN & $K=3$ & 1,629,712 & 0.82 & 3877 (4313)& 3866 (4367)\\
-%		LSTM+GCNN & $K=5$ & 2,711,056 & 1.53 & 3491 (3889)& 3495 (3932)\\
-%		LSTM+GCNN & $K=7$ & 3,792,400 & 1.75 & {\bf 3399 (3777)}& {\bf 3400 (3803)}\\
-%		LSTM+GCNN & $K=9$ & 4,873,744 & 2.15 & 3395 (3798) & 3395 (3814)\\
-%		\bottomrule
-%	\end{tabular}
-%	\caption{Comparison between models. Time spending per each mini-batch is written in Running time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm} and the numbers in parenthesis refer to cross-entropy on rotational moving-MNIST. LSTM-GCNN is Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
-%	\label{tab:moving_mnist}
-%\end{table}
 \begin{table}
 	\centering
 	{\small
 	\begin{tabular}{lccccccc}
 		\toprule
-		Architecture & Structure & Filter size & Parameters & Run time & Test(w/o Rot) & Test(Rot) & Gap\\
+		Architecture & Structure & Filter size & Parameters & Runtime & Test(w/o Rot) & Test(Rot) \\%& Gap\\
 		\midrule
-		FC-LSTM & N/A & N/A & 142,667,776 & N/A & 4832 & - & -\\
-		LSTM+CNN & N/A & $5 \times 5$ & 13,524,496 & 2.10 & 3851 & 4339 & 488 \\
-		LSTM+CNN & N/A & $9 \times 9$ & 43,802,128 & 6.10 & 3903 & 4208 & 305 \\
+		FC-LSTM & N/A & N/A & 142,667,776 & N/A & 4832 & - \\%& -\\
+		LSTM+CNN & N/A & $5 \times 5$ & 13,524,496 & 2.10 & 3851 & 4339 \\%& 488 \\
+		LSTM+CNN & N/A & $9 \times 9$ & 43,802,128 & 6.10 & 3903 & 4208 \\%& 305 \\
 
-		LSTM+GCNN & $knn=8$ & $K=3$ & 1,629,712 & 0.82 & 3866 & 4367 & 501 \\
-		LSTM+GCNN & $knn=8$ & $K=5$ & 2,711,056 & 1.24 & 3495 & 3932 & 437 \\
-		LSTM+GCNN & $knn=8$ & $K=7$ & 3,792,400 & 1.61 & {\bf 3400} & {\bf 3803} & {\bf 403}\\
-		LSTM+GCNN & $knn=8$ & $K=9$ & 4,873,744 & 2.15 & 3395 & 3814 & 419 \\
+		LSTM+GCNN & $knn=8$ & $K=3$ & 1,629,712 & 0.82 & 3866 & 4367 \\%& 501 \\
+		LSTM+GCNN & $knn=8$ & $K=5$ & 2,711,056 & 1.24 & 3495 & 3932 \\%& 437 \\
+		LSTM+GCNN & $knn=8$ & $K=7$ & 3,792,400 & 1.61 & {\bf 3400} & {\bf 3803} \\%& {\bf 403}\\
+		LSTM+GCNN & $knn=8$ & $K=9$ & 4,873,744 & 2.15 & 3395 & 3814 \\%& 419 \\
 		
-		LSTM+GCNN & $knn=4$ & $K=7$ & 3,792,400 & 1.61 & 3446 & 3844 & 398 \\
-		LSTM+GCNN & $knn=16$ & $K=7$ & 3,792,400 & 1.61 & 3578 & 3963 & 385 \\
+		LSTM+GCNN & $knn=4$ & $K=7$ & 3,792,400 & 1.61 & 3446 & 3844 \\%& 398 \\
+		LSTM+GCNN & $knn=16$ & $K=7$ & 3,792,400 & 1.61 & 3578 & 3963 \\%& 385 \\
 		\bottomrule
 	\end{tabular}
 	}
-	\caption{Comparison between models. Time spending per each mini-batch is written in Run time(sec). Cross-entropy of FC-LSTM is taken from \cite{convlstm}. The two test correspond to moving-MINIST(w/o Rot) result and rotational moving-MNIST(Rot) respectively. LSTM-GCNN uses Model 2 defined in \eqnref{lstm_graph_v2} with 8-nearest neighbor graph.}
+	\caption{Comparison between models. Runtime is the time spent per each mini-batch in seconds. Test cross-entropies correspond to moving MNIST, and rotating and moving MNIST. LSTM+GCNN is Model 2 defined in \eqnref{lstm_graph_v2}. Cross-entropy of FC-LSTM is taken from \cite{convlstm}.}
 	\label{tab:moving_mnist}
 \end{table}
 %\begin{figure}[ht]
@@ -530,8 +524,8 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/mMNIST_1}}
 	\hfill
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/mMNIST_3}}
-	\caption{Cross-entropy on validation set: figure on the left shows the performance of graph cnn with various size of K, while the figure on the right shows the performance changes depending on the graph structure.}
-	\label{mMNIST_graph}
+	\caption{Cross-entropy on validation set: Left: performance of graph CNN with various filter support $K$. Right: performance w.r.t. graph construction.}
+	\label{fig:mMNIST_graph}
 \end{figure}
 
 \begin{figure}[t]
@@ -539,148 +533,135 @@ dataset.\footnote{\url{http://www.wanghao.in/code/SPARNN-release.zip}} For the c
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/viz_mnist_move}}
 	\hfill
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/viz_mnist_move_rot}}
-	\caption{Qualitative result for moving-MNIST and rotational moving-MNIST respectively. First row is the input sequence, second the ground truth and third and fourth are the predictions of the LSTM+CNN($5\times5$) and LSTM+GCNN($knn=8, K=7$)}
-	\label{mMNIST_img}
+	\caption{Qualitative results for moving MNIST, and rotating and moving MNIST. First row is the input sequence, second the ground truth, and third and fourth are the predictions of the LSTM+CNN($5\times5$) and LSTM+GCNN($knn=8, K=7$).}
+	\label{fig:mMNIST_img}
 \end{figure}
 
-%\begin{figure}[ht]
-%	\centering
-%	\includegraphics[width=\linewidth]{figures/result_mmnist}
-%	\caption{Qualitative result for moving-MNIST. First row is the input sequence, second the ground truth and third the predictions of the 1-layer LSTM+GCNN with 8-nearest neighbor graph and $K=7$.}
-%	\label{mMNIST_img}
-%\end{figure}
 
 \tabref{moving_mnist} shows the performance of various models: (i) the baseline
 FC-LSTM from \citet{convlstm}, (ii) the 1-layer LSTM+CNN from \citet{convlstm}
-with different filter size, and (iii) the proposed LSTM+graph CNN(GCNN) defined by \eqnref{lstm_graph_v2} with four
-different values of $K$. These results show the ability of the proposed method
-to capture spatio-temporal structures. Surprisingly, GCNNs can offer
-better performance than regular CNNs, even when the domain is a 2D grid and the
-data is images, the problem CNNs were initially developed for. One possible explanation can be the number of parameters that GCNN uses. GCNN take much less parameters than regular CNN by sharing the parameter depending on the length of the connection. Figure \ref{mMNIST_graph} on the left shows that LSTM+CNN($5\times5$) performs similar to LSTM + GCNN with $K = 3$. Because the $5\times5$ convolutional filter corresponds to $K=3$ in GCNN. However, when we increase the filter size as $9\times9$, the performance decreases because the number of parameters is increasing dramatically. Whereas GCNN can outperforms when it increases filter size to $K=7$. One another explanation can be the rotation invariance inherently provided by the graph structure. As
-the nodes are not ordered, there is no notion of an edge going up, down, on the
-right or on the left. All edges are treated equally. Experiment on rotational-moving MNST can explain rotation invariance property in GCNN. \tabref{moving_mnist} shows the performance gap between moving-MNST and rotational moving-MNST. LSTM+CNN($5\times5$) increases the cross-validation loss 488, whereas LSTM+GCNN($K=7$) get 403. The structure of graph also can affect the performance. Figure \ref{mMNIST_graph} on the right shows how the performance changes depending on the graph structure. We found that 8-nearest neighbor structure with K=7 performs the best on moving-MNIST. 
-
-%\tabref{moving_mnist} shows the performance of various models: (i) the baseline
-%FC-LSTM from \citet{convlstm}, (ii) the 1-layer LSTM+CNN from \citet{convlstm}
-%and (iii) the proposed LSTM+GCNN defined by \eqnref{lstm_graph_v2} with three
-%different values of $K$. These results show the ability of the proposed method
-%to capture spatio-temporal structures. Surprisingly, graph CNNs can offer
-%better performance than regular CNNs, even when the domain is a 2D grid and the
-%data is images, the problem CNNs were initially developed for. An explanation
-%may be the rotation invariance inherently provided by the graph structure. As
-%the nodes are not ordered, there is no notion of an edge going up, down, on the
-%right or on the left. All edges are treated equal.
-
-
-
-
-
+with different filter sizes, and (iii) the proposed LSTM+graph CNN(GCNN)
+defined in \eqnref{lstm_graph_v2} with different supports $K$. These results
+show the ability of the proposed method to capture spatio-temporal structures.
+Perhaps surprisingly, GCNNs can offer better performance than regular CNNs,
+even when the domain is a 2D grid and the data is images, the problem CNNs were
+initially developed for. The explanation is to be found in the differences
+between 2D filters and spectral graph filters. While a spectral filter of
+support $K=3$ corresponds to the reach of a patch of size $5 \times 5$ (see
+\figref{reach}), the difference resides in the isotropic nature of the former
+and the number of parameters: $K=3$ for the former and $5^2=25$ for the later.
+\tabref{moving_mnist} indeed shows that LSTM+CNN($5\times5$) rivals LSTM+GCNN
+with $K=3$. However, when increasing the filter size to $9\times9$ or $K=5$,
+the GCNN variant clearly outperforms the CNN variant. This experiment
+demonstrates that graph spectral filters can obtain superior performance on
+regular domains with much less parameters thanks to their isotropic nature, a
+controversial property. Indeed, as the nodes are not ordered, there is no
+notion of an edge going up, down, on the right or on the left. All edges are
+treated equally, inducing some sort of rotation invariance. Additionally,
+\tabref{moving_mnist} shows that the computational complexity of each model is
+linear with the filter size, and \figref{mMNIST_graph} shows the learning
+dynamic of some of the models.
 
 \subsection{Natural Language Modeling on Penn Treebank}
 
+The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{\url{https://github.com/wojzaremba/lstm}} into a training set of 929k words, a validation set of 73k words, and a test set of 82k words. The size of the vocabulary of this corpus is 10,000. We use the gensim library\footnote{\url{https://radimrehurek.com/gensim/models/word2vec.html}} to compute a word2vec model \citep{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embedding using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. We used the hyperparameters of the small configuration given by the code\footnotemark[6] based on \cite{zaremba2014recurrent}: the size of the data mini-batch is 20, the number of temporal steps to unroll is 20, the dimension of the hidden state is 200. The global learning rate is 1.0 and the norm of the gradient is bounded by 5. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 13 epochs, and dropout value is 0.75. For \cite{zaremba2014recurrent}, the input representation $x_t$ can be either the 200-dim embedding vector of the word, or the 10,000-dim one-hot representation of the word. For our models, the input representation is a one-hot representation of the word. This choice allows us to use the graph structure of the words.
 
-
-The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zaremba2014recurrent} and split\footnote{\url{https://github.com/wojzaremba/lstm}} into a training set of 929k words, a validation set of 73k words, and a test set of 82k words. The size of the vocabulary of this corpus is 10,000. We use the gensim library\footnote{\url{https://radimrehurek.com/gensim/models/word2vec.html}} to compute a word2vec model \citep{word2vec} for embedding the words of the dictionary in a 200-dimensional space. Then we build the adjacency matrix of the word embedding using a 4-nearest neighbor graph with cosine distance. Figure \ref{fig2} presents the computed adjacency matrix, and its 3D visualization. We used the hyperparameters of the small configuration given by the code\footnotemark[5] based on \cite{zaremba2014recurrent}: the size of the data mini-batch is 20, the number of temporal steps to unroll is 20, the dimension of the hidden state is 200. The global learning rate is 1.0 and the norm of the gradient is bounded by 5. The learning decay function is selected to be $0.5^{\max(0,\textrm{\#epoch}-4)}$. All experiments have 13 epochs, and dropout value is 0.75. For \cite{zaremba2014recurrent}, the input representation $x_t$ can be either the 200-dim embedding vector of the word, or the 10,000-dim one-hot representation of the word. For our models, the input representation is an one-hot representation of the word. This choice allows us to use the graph structure of the words. 
-
-\begin{table*}[t]
-	\centering
-	{\small
-		\begin{tabular}{ccccccccc}
-			\toprule
-			LSTM Architecture & Parameters & Train Perplexity & Test Perplexity  \\
-			\midrule
-			\cite{zaremba2014recurrent} code\footnotemark[5] + embedding representation & 681,800 & 36.96 & 117.29 \\
-			\cite{zaremba2014recurrent} code\footnotemark[5] + one-hot representation & 34,011,600 & 53.89 & 118.82 \\
-			Our LSTM code + embedding representation & 681,800 & 48.38 & 120.90 \\
-			Our LSTM code + one-hot representation & 34,011,600 & 54.41 & 120.16 \\
-			LSTM + GCNN-M1 & 42,011,602 & 18.49 & 177.14 \\
-			LSTM + one-hot + dropout  & 34,011,600 & 145.59 & 112.98 \\
-			LSTM + GCNN-M1 + dropout & 42,011,602 & 114.29 & {\bf 98.67} \\
-			\bottomrule
-		\end{tabular}
-	}
-	\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^5$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^4$. As our model runs on the original 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCNN stands for graph CNN and M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
-	\label{tab1}
-\end{table*}
-\noindent
-Table \ref{tab1} reports the final train and test perplexity values for each investigated model and Figure \ref{fig3} plots the perplexity value vs. the number of epochs for the train and test sets with and without dropout regularization. Numerical experiments show:
-\vspace{-0.25cm}
-\begin{enumerate}
-\item Given the same experimental conditions in terms of architecture and {\it no} dropout regularization, the standalone model of LSTM is more accurate than LSTM using the spatial graph information ($120.16$ vs. $177.14$), extracted by graph CNN with the GCRN architecture of Model 1, Eq. \eqnref{lstm_graph_v1}. 
-\item However, using dropout regularization, the graph LSTM model overcomes the standalone LSTM with perplexity values $98.67$ vs. $112.98$. 
-\item The use of spatial graph information found by graph CNN speeds up the learning process, and overfits the training dataset in the absence of dropout regularization. The graph structure likely acts a constraint on the learning system that is forced to move in the space of language topics.
-\item We performed the same experiments with LSTM and Model 2 defined in \eqnref{lstm_graph_v2}. Model 1 significantly outperformed Model 2, and Model 2 did worse than standalone LSTM. This bad performance may result of the large increase of dimensionality in Model 2 as the dimension of the hidden and cell states changes from 200 to 10,000, the size of the vocabulary. A solution would be to downsize the data dimensionality, as done in \cite{convlstm} in the case of image data.
-\end{enumerate}
-
-
-
-
-
-
-
-
-
-
-
-
-\footnotetext[5]{\url{https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/ptb\_word\_lm.py}}
-
-
-
-
-
-
-%\begin{table*}[h!]
-% \centering
-%{\small
-%\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
-%\hline
-% LSTM Architecture & Train Perplexity & Test Perplexity  \\
-%\hline
-%\cite{zaremba2014recurrent} code\footnotemark[5] + embedding representation & 36.96 & 117.29 \\
-%\cite{zaremba2014recurrent} code\footnotemark[5] + one-hot representation & 54.32 & 116.67 \\
-%Our LSTM code + embedding representation & 48.38 & 120.90 \\
-%Our LSTM code + one-hot representation & 54.41 & 120.16 \\
-%LSTM + GCNN-M1 & 18.49 & 177.14 \\
-%LSTM + one-hot + dropout  & 145.59 & 112.98 \\
-%LSTM + GCNN-M1 + dropout & 114.29 & {\bf 98.67} \\
-%\hline
-%\end{tabular}
-%}
-%\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^5$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^4$. As our model runs on the original 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCNN stands for graph CNN and M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
-%\label{tab1}
-%\end{table*}
-
-
-
-\begin{figure}[h!]
-	\centering
-	\subfigure[]{\includegraphics[height=5cm]{figures/matrixW}}
-	\hspace{0.5cm}
-	\subfigure[]{\includegraphics[height=5cm]{figures/embedding}}
-	\caption{Left figure shows the adjacency matrix of word embeddings, and right figure presents a 3D visualisation of words' structure.}
-	\label{fig2}
-\end{figure}
-
-\begin{figure}[h!]
+\begin{figure}[t]
 	\centering
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/fig_ptb_train_small_config}}
 	\hfill
 	\subfigure{\includegraphics[width=0.48\linewidth]{figures/fig_ptb_test_small_config}}
-	\caption{LSTM with and without graph information and dropout regularization: Dynamic of learning processes, that is perplexity vs. epoch for the investigated models on the training and testing sets.}
+		\caption{Learning dynamic of LSTM with and without graph structure and dropout regularization.}
 	\label{fig3}
 \end{figure}
 
+\begin{table*}[t]
+	\centering
+	{\small
+		\begin{tabular}{lcccc}
+			\toprule
+			Architecture & Representation & Parameters & Train Perplexity & Test Perplexity  \\
+			\midrule
+			\citet{zaremba2014recurrent} code\footnotemark[6] & embedding & 681,800 & 36.96 & 117.29 \\
+			\citet{zaremba2014recurrent} code\footnotemark[6] & one-hot & 34,011,600 & 53.89 & 118.82 \\
+			LSTM & embedding & 681,800 & 48.38 & 120.90 \\
+			LSTM & one-hot & 34,011,600 & 54.41 & 120.16 \\
+			LSTM, dropout & one-hot & 34,011,600 & 145.59 & 112.98 \\
+			GCRN-M1 & one-hot & 42,011,602 & 18.49 & 177.14 \\
+			GCRN-M1, dropout & one-hot & 42,011,602 & 114.29 & {\bf 98.67} \\
+			\bottomrule
+		\end{tabular}
+	}
+	\caption{Comparison of models in terms of perplexity. \cite{zaremba2014recurrent} code$^6$ is ran as benchmark algorithm. The original \cite{zaremba2014recurrent} code used as input representation for $x_t$ the 200-dim embedding representation of words, computed here by the gensim library$^5$. As our model runs on the 10,000-dim one-hot representation of words, we also ran \cite{zaremba2014recurrent} code on this representation. We re-implemented \cite{zaremba2014recurrent} code with the same architecture and hyperparameters. We remind that GCRN-M1 refers to GCRN Model 1 defined in \eqnref{lstm_graph_v1}.} 
+	\label{tab1}
+\end{table*}
 
+Table \ref{tab1} reports the final train and test perplexity values for each
+investigated model and Figure \ref{fig3} plots the perplexity value vs. the
+number of epochs for the train and test sets with and without dropout
+regularization. Numerical experiments show:
+%\vspace{-0.25cm}
+\begin{enumerate}
+\item Given the same experimental conditions in terms of architecture and {\it
+	no} dropout regularization, the standalone model of LSTM is more accurate
+	than LSTM using the spatial graph information ($120.16$ vs. $177.14$),
+	extracted by graph CNN with the GCRN architecture of Model 1, Eq.
+	\eqnref{lstm_graph_v1}. 
+\item However, using dropout regularization, the graph LSTM model overcomes the
+	standalone LSTM with perplexity values $98.67$ vs. $112.98$. 
+\item The use of spatial graph information found by graph CNN speeds up the
+	learning process, and overfits the training dataset in the absence of
+	dropout regularization. The graph structure likely acts a constraint on the
+	learning system that is forced to move in the space of language topics.
+\item We performed the same experiments with LSTM and Model 2 defined in
+	\eqnref{lstm_graph_v2}. Model 1 significantly outperformed Model 2, and
+	Model 2 did worse than standalone LSTM. This bad performance may be the
+	result of the large increase of dimensionality in Model 2, as the dimension
+	of the hidden and cell states changes from 200 to 10,000, the size of the
+	vocabulary. A solution would be to downsize the data dimensionality, as
+	done in \cite{convlstm} in the case of image data.
+\end{enumerate}
 
+\footnotetext[6]{\url{https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/ptb\_word\_lm.py}}
 
-
-
+\begin{figure}[t]
+	\centering
+	\subfigure{\includegraphics[height=5cm]{figures/matrixW}}
+	\hspace{0.5cm}
+	\subfigure{\includegraphics[height=5cm]{figures/embedding}}
+	\vspace{-0.6cm}
+	\caption{Left: adjacency matrix of word embeddings. Right: 3D visualization of words' structure.}
+	\label{fig2}
+\end{figure}
 
 \section{Conclusion and Future Work}
 
-This work aims at learning spatio-temporal structures from graph-structured and time-varying data. In this context, the main challenge is to identify the best possible architecture that combines simultaneously recurrent neural networks like vanilla RNN, LSTM or GRU with convolutional neural networks for graph-structured data. We have investigated here two architectures, one using a stack of CNN and RNN (Model 1), and one using convLSTM that considers convolutions instead of fully connected operations in the RNN memory (Model 2). We have then considered two applications; video prediction and natural language modeling. Model 2 has shown good performances in the case of video prediction, by improving the results of \citet{convlstm}. The major advantage of graph convolution in Model2 is that model can reduce the number of the parameters dramatically compare to regular convolution. Therefore, model can easily increase the filter size without overfitting. Model 1 has also provided promising performances in the case of language modeling, particularly in terms of learning speed. Future work will investigate applications to data naturally structured as dynamic graph signals, for instance fMRI and sensor networks. The graph CNN model we have used is rotationally-invariant and such spatial property seems quite attractive in real situations where motion is beyond translation. We will also investigate how to benefit of the fast learning property of our system to speed up language modeling models. Eventually, it will be interesting to analyze the underlying dynamical property of generic RNN architectures in the case of graphs. Graph structures may introduce stability property to RNN systems, and prevent them to express unstable dynamic behaviors.
+This work aims at learning spatio-temporal structures from graph-structured and
+time-varying data. In this context, the main challenge is to identify the best
+possible architecture that combines simultaneously recurrent neural networks
+like vanilla RNN, LSTM or GRU with convolutional neural networks for
+graph-structured data. We have investigated here two architectures, one using a
+stack of CNN and RNN (Model 1), and one using convLSTM that considers
+convolutions instead of fully connected operations in the RNN definition (Model
+2). We have then considered two applications: video prediction and natural
+language modeling. Model 2 has shown good performances in the case of video
+prediction, by improving the results of \citet{convlstm}. Model 1 has also
+provided promising performances in the case of language modeling, particularly
+in terms of learning speed. It has been shown that (i) isotropic filters, maybe
+surprisingly, can outperform classical 2D filters on images while requiring
+much less parameters, and (ii) that graphs coupled with graph CNN and RNN are a
+versatile way of introducing and exploiting side-information, e.g. the semantic
+of words, by structuring a data matrix.
 
+Future work will investigate applications to data naturally structured as
+dynamic graph signals, for instance fMRI and sensor networks. The graph CNN
+model we have used is rotationally-invariant and such spatial property seems
+quite attractive in real situations where motion is beyond translation. We will
+also investigate how to benefit of the fast learning property of our system to
+speed up language modeling models. Eventually, it will be interesting to
+analyze the underlying dynamical property of generic RNN architectures in the
+case of graphs. Graph structures may introduce stability to RNN systems, and
+prevent them to express unstable dynamic behaviors.
 
 %We introduced the Graph Convolutional Recurrent Network, an architecture
 %designed to model graph-structured and time-varying data. The model is an
@@ -690,10 +671,15 @@ This work aims at learning spatio-temporal structures from graph-structured and 
 %We realized during this work that the evaluation of such generative models is hard as we don't have a proper cost function to evaluate the generated samples. To circumvent it, many researchers have moved to the generative adversarial networks (GANs) framework, a scheme introduced by \citet{gan} for training generative models where the goal is to fool a discriminator system that tries to separate data from the true distribution from data generated by the model. Such models are however difficult to train.
 %Future works will both refine the model with advances in graph ConvNets, a recent area of interest, and apply the model to real-world problems.
 
-\subsubsection*{Acknowledgments}
-The research leading to these results has received funding from the European Union's 
-H2020 Framework Programme (H2020-MSCA-ITN-2014) under grant agreement n$^{\circ}$ 642685 MacSeNet.
+\section*{Acknowledgment}
+
+This research was supported in part by the European Union's H2020 Framework
+Programme (H2020-MSCA-ITN-2014) under grant No. 642685 MacSeNet, and Nvidia
+equipment grant.
+
+%\clearpage
 {
+	%\setlength{\bibsep}{4.7pt}
 	\small
 	\bibliography{iclr2017}
 	\bibliographystyle{iclr2017}
