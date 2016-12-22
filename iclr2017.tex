@@ -7,10 +7,11 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{csquotes}
+%\usepackage{graphicx}
 \usepackage{graphicx} \graphicspath{{figures/}}
 \usepackage{subfigure}
 \usepackage{booktabs}
-\usepackage{setspace}
+%\usepackage{setspace}
 
 %\setlength{\bibsep}{1.52pt} %comment for arxiv
 %\usepackage{parskip} \setlength{\parskip}{3pt}
@@ -520,18 +521,18 @@ are also rotating (see \figref{mMNIST_img}).
 
 \begin{figure}[t]
 	\centering
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/mMNIST_1}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{mMNIST_1}}
 	\hfill
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/mMNIST_3}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{mMNIST_3}}
 	\caption{Cross-entropy on validation set: Left: performance of graph CNN with various filter support $K$. Right: performance w.r.t. graph construction.}
 	\label{fig:mMNIST_graph}
 \end{figure}
 
 \begin{figure}[t]
 	\centering
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/viz_mnist_move}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{viz_mnist_move}}
 	\hfill
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/viz_mnist_move_rot}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{viz_mnist_move_rot}}
 	\caption{Qualitative results for moving MNIST, and rotating and moving MNIST. First row is the input sequence, second the ground truth, and third and fourth are the predictions of the LSTM+CNN($5\times5$) and LSTM+GCNN($knn=8, K=7$).}
 	\label{fig:mMNIST_img}
 \end{figure}
@@ -567,9 +568,9 @@ The Penn Treebank dataset has 1,036,580 words. It was pre-processed in \cite{zar
 
 \begin{figure}[t]
 	\centering
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/fig_ptb_train_small_config}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{fig_ptb_train_small_config}}
 	\hfill
-	\subfigure{\includegraphics[width=0.48\linewidth]{figures/fig_ptb_test_small_config}}
+	\subfigure{\includegraphics[width=0.48\linewidth]{fig_ptb_test_small_config}}
 		\caption{Learning dynamic of LSTM with and without graph structure and dropout regularization.}
 	\label{fig3}
 \end{figure}
@@ -625,9 +626,9 @@ regularization. Numerical experiments show:
 
 \begin{figure}[t]
 	\centering
-	\subfigure{\includegraphics[height=5cm]{figures/matrixW}}
+	\subfigure{\includegraphics[height=5cm]{matrixW}}
 	\hspace{0.5cm}
-	\subfigure{\includegraphics[height=5cm]{figures/embedding}}
+	\subfigure{\includegraphics[height=5cm]{embedding}}
 	\vspace{-0.6cm}
 	\caption{Left: adjacency matrix of word embeddings. Right: 3D visualization of words' structure.}
 	\label{fig2}
@@ -676,7 +677,7 @@ This research was supported in part by the European Union's H2020 Framework
 Programme (H2020-MSCA-ITN-2014) under grant No. 642685 MacSeNet, and Nvidia
 equipment grant.
 
-%\clearpage
+
 {
 	%\setlength{\bibsep}{4.7pt}
 	\small
