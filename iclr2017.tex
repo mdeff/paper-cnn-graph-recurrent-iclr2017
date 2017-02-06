@@ -323,15 +323,15 @@ nodes are well ordered. Their model is essentially the classical FC-LSTM
 replaced by convolutions with kernels $W$:
 \begin{align} \label{eqn:lstm_conv}
 \begin{split}
-	i &= \sigma(W_{xi} \ast x_t + W_{hi} \ast h_{t-1} +
-	            w_{ci} \odot c_{t-1} + b_i), \\
-	f &= \sigma(W_{xf} \ast x_t + W_{hf} \ast h_{t-1} +
-	            w_{cf} \odot c_{t-1} + b_f), \\
-	c_t &= f_t \odot c_{t-1} + i_t \odot
-	       \tanh(W_{xc} \ast x_t + W_{hc} \ast h_{t-1} + b_c), \\
-	o &= \sigma(W_{xo} \ast x_t + W_{ho} \ast h_{t-1} +
-	            w_{co} \odot c_t + b_o), \\
-	h_t &= o \odot \tanh(c_t),
+i_t &= \sigma(W_{xi} \ast x_t + W_{hi} \ast h_{t-1} +
+w_{ci} \odot c_{t-1} + b_i), \\
+f_t &= \sigma(W_{xf} \ast x_t + W_{hf} \ast h_{t-1} +
+w_{cf} \odot c_{t-1} + b_f), \\
+c_t &= f_t \odot c_{t-1} + i_t \odot
+\tanh(W_{xc} \ast x_t + W_{hc} \ast h_{t-1} + b_c), \\
+o_t &= \sigma(W_{xo} \ast x_t + W_{ho} \ast h_{t-1} +
+w_{co} \odot c_t + b_o), \\
+h_t &= o_t \odot \tanh(c_t),
 \end{split}
 \end{align}
 where $\ast$ denotes the 2D convolution by a set of kernels. In their setting,
@@ -403,34 +403,34 @@ CNN, defined as \eqnref{graph_conv_cheby}, for feature extraction and an LSTM,
 defined as \eqnref{lstm_fc}, for sequence learning:
 \begin{align} \label{eqn:lstm_graph_v1}
 \begin{split}
-	x_t^{\textrm{CNN}} &=  \textrm{CNN}_\G(x_t)\\
-	i &= \sigma(W_{xi} x_t^{\textrm{CNN}} + W_{hi} h_{t-1}  +
-	            w_{ci} \odot c_{t-1} + b_i), \\
-	f &= \sigma(W_{xf} x_t^{\textrm{CNN}} + W_{hf} h_{t-1} + w_{cf} \odot c_{t-1} + b_f), \\
-	c_t &= f_t \odot c_{t-1} + i_t \odot \tanh(W_{xc} x_t^{\textrm{CNN}} + W_{hc} h_{t-1} + b_c), \\
-	o &= \sigma(W_{xo} x_t^{\textrm{CNN}} + W_{ho} h_{t-1} + w_{co} \odot c_t + b_o), \\
-	h_t &= o \odot \tanh(c_t).
+x_t^{\textrm{CNN}} &=  \textrm{CNN}_\G(x_t)\\
+i_t &= \sigma(W_{xi} x_t^{\textrm{CNN}} + W_{hi} h_{t-1}  +
+w_{ci} \odot c_{t-1} + b_i), \\
+f_t &= \sigma(W_{xf} x_t^{\textrm{CNN}} + W_{hf} h_{t-1} + w_{cf} \odot c_{t-1} + b_f), \\
+c_t &= f_t \odot c_{t-1} + i_t \odot \tanh(W_{xc} x_t^{\textrm{CNN}} + W_{hc} h_{t-1} + b_c), \\
+o_t &= \sigma(W_{xo} x_t^{\textrm{CNN}} + W_{ho} h_{t-1} + w_{co} \odot c_t + b_o), \\
+h_t &= o_t \odot \tanh(c_t).
 \end{split}
 \end{align}
-In that setting, the input matrix $x_t \in \R^{n \times d_x}$ may represent the
+In that setting, the input matrix $x_t \in \R^{n \times d_x}$ represent the
 observation of $d_x$ measurements at time $t$ of a dynamical system over a
-network whose organization is given by a graph $\G$. $x_t^{\textrm{CNN}}$ is the output of the graph CNN gate. For a proof of concept, we simply choose here $x_t^{\textrm{CNN}} = W^{\textrm{CNN}} \ast_\G x_t$, where $W^{\textrm{CNN}} \in \R^{K \times d_x \times d_x}$ are the Chebyshev coefficients  for the graph convolutional kernels of support $K$. The model also holds spatially distributed hidden and cell states of size $d_h$ given by the matrices $c_t, h_t \in \R^{n \times d_h}$. Peepholes are controlled by $w_{c\cdot} \in \R^{n \times d_h}$. The weights $W_{h\cdot} \in
-\R^{ d_h \times d_h}$ and $W_{x\cdot} \in \R^{d_h \times d_x}$ are the parameters of the fully connected layers. An architecture such as \eqnref{lstm_graph_v1} may be enough to capture the data distribution by exploiting local stationarity and compositionality properties as well as the dynamic properties.
+network whose organization is given by a graph $\G$. $x_t^{\textrm{CNN}} $ is the output of the graph CNN. For a proof of concept, we simply choose here $x_t^{\textrm{CNN}} = W^{\textrm{CNN}} \ast_\G x_t$, where $W^{\textrm{CNN}} \in \R^{K \times d_x \times d_x}$ are the Chebyshev coefficients  for the graph convolutional kernels of support $K$. Though graph CNN can give output as same structure as input $x_t^{\textrm{CNN}} \in \R^{n \times d_x}$, but we feed the graph CNN output as fully connected layer with $x_t^{\textrm{CNN}} \in \R^{nd_x \times 1}$ as feature for LSTM. The model also holds spatially distributed hidden and cell states of size $d_h$ given by the matrices $c_t, h_t \in \R^{d_h}$. Peepholes are controlled by $w_{c\cdot} \in \R^{d_h}$. The weights $W_{h\cdot} \in
+\R^{ d_h \times d_h}$ and $W_{x\cdot} \in \R^{d_h \times nd_x}$ are the parameters of the fully connected layers. An architecture such as \eqnref{lstm_graph_v1} may be enough to capture the data distribution by exploiting local stationarity and compositionality properties as well as the dynamic properties.
 
 \paragraph{Model 2.} To generalize the convLSTM model \eqnref{lstm_conv} to
 graphs we replace the Euclidean 2D convolution $\ast$ by the graph convolution
 $\ast_\G$:
 \begin{align} \label{eqn:lstm_graph_v2}
 \begin{split}
-	i &= \sigma(W_{xi} \ast_\G x_t + W_{hi} \ast_\G h_{t-1} +
-	            w_{ci} \odot c_{t-1} + b_i), \\
-	f &= \sigma(W_{xf} \ast_\G x_t + W_{hf} \ast_\G h_{t-1} +
-	            w_{cf} \odot c_{t-1} + b_f), \\
-	c_t &= f_t \odot c_{t-1} + i_t \odot
-	       \tanh(W_{xc} \ast_\G x_t + W_{hc} \ast_\G h_{t-1} + b_c), \\
-	o &= \sigma(W_{xo} \ast_\G x_t + W_{ho} \ast_\G h_{t-1} +
-	            w_{co} \odot c_t + b_o), \\
-	h_t &= o \odot \tanh(c_t).
+i_t &= \sigma(W_{xi} \ast_\G x_t + W_{hi} \ast_\G h_{t-1} +
+w_{ci} \odot c_{t-1} + b_i), \\
+f_t &= \sigma(W_{xf} \ast_\G x_t + W_{hf} \ast_\G h_{t-1} +
+w_{cf} \odot c_{t-1} + b_f), \\
+c_t &= f_t \odot c_{t-1} + i_t \odot
+\tanh(W_{xc} \ast_\G x_t + W_{hc} \ast_\G h_{t-1} + b_c), \\
+o_t &= \sigma(W_{xo} \ast_\G x_t + W_{ho} \ast_\G h_{t-1} +
+w_{co} \odot c_t + b_o), \\
+h_t &= o_t \odot \tanh(c_t).
 \end{split}
 \end{align}
 In that setting, the support $K$ of the graph convolutional kernels defined by
