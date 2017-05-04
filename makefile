@@ -22,6 +22,6 @@ cleanall: clean
 	rm -f $(PDF)
 
 arxiv: all
-	apack arxiv.zip figures/*.pdf $(TEX:.tex=).{tex,sty,bbl}
+	apack arxiv.zip figures/*.pdf $(TEX:.tex=).{tex,bbl} *.sty
 
 .PHONY: all figures clean cleanall arxiv

@@ -1,19 +1,34 @@
-\documentclass{article} % For LaTeX2e
+\documentclass{article}
 \pdfoutput=1  % for arXiv to use pdflatex
 
-\usepackage{iclr2017,times}
-\usepackage{hyperref}
-\usepackage{url}
+% if you need to pass options to natbib, use, e.g.:
+% \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading nips_2017
+%
+% to avoid loading the natbib package, add option nonatbib:
+% \usepackage[nonatbib]{nips_2017}
 
-\usepackage[utf8]{inputenc}
+%\usepackage{nips_2017}
+\usepackage[final]{nips_2017}
+
+%Anonymous submission: authors, acknowledgments, refer to own in third person
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage[svgnames]{xcolor}
+\usepackage[colorlinks=true,allcolors=DarkBlue]{hyperref} % MidnightBlue, NavyBlue, DarkBlue, Maroon
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{csquotes}
 %\usepackage{graphicx}
 \usepackage{graphicx} \graphicspath{{figures/}}
 \usepackage{subfigure}
-\usepackage{booktabs}
 %\usepackage{setspace}
+%\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+%\usepackage{microtype}      % microtypography
 
 %\setlength{\bibsep}{1.52pt} %comment for arxiv
 %\usepackage{parskip} \setlength{\parskip}{3pt}
@@ -22,6 +37,7 @@
 %\title{Graph Convolutional Recurrent Network\\
 %for Structured Sequence Modeling}
 \title{Structured Sequence Modeling with \\ Graph Convolutional Recurrent Networks}
+%\title{Structured Sequence Modeling with \\ Recurrent Graph Convolutional Networks}
 %\title{Structured Sequence Prediction with \\ Graph Convolutional Recurrent Networks}
 %\title{Graph Convolutional Recurrent Network\\
 %for Spatio-Temporal Sequence Modeling}
@@ -29,34 +45,44 @@
 %\title{Graph Convolutional LSTM Network}
 %\title{Graph Convolutional RNN}
 
-%\author{Youngjoo Seo, Michaël Defferrard, Pierre Vandergheynst \\
-%EPFL, Lausanne, Switzerland \\
-%\texttt{\{youngjoo.seo, michael.defferrard, pierre.vandergheynst\}@epfl.ch} \\
+% The \author macro works with any number of authors. There are two
+% commands used to separate the names and addresses of multiple
+% authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to
+% break the lines. Using \AND forces a line break at that point. So,
+% if LaTeX puts 3 of 4 authors names on the first line, and the last
+% on the second line, try using \AND instead of \And before the third
+% author name.
+
+\author{
+	Yougjoo Seo$^\dagger$ \hspace {.6cm} Michaël Defferrard$^\dagger$  \hspace{.6cm} Pierre Vandergheynst$^\dagger$ \hspace{.6cm} Xavier Bresson$^\ddagger$ \\
+	$^\dagger$LTS2, EPFL, Switzerland \hspace{0.4cm}
+	$^\ddagger$SCSE, NTU, Singapore \hspace{0.4cm}
+	{\small Work conducted when XB was at EPFL.} \\
+	{\tt\small \{youngjoo.seo,michael.defferrard,pierre.vandergheynst\}@epfl.ch, xbresson@ntu.edu.sg}
+}
+
+%\author{Youngjoo Seo \\
+%EPFL, Switzerland \\
+%\texttt{youngjoo.seo@epfl.ch} \\
+%\And
+%Michaël Defferrard \\
+%EPFL, Switzerland \\
+%\texttt{michael.defferrard@epfl.ch} \\
+%\And
+%Pierre Vandergheynst \\
+%EPFL, Switzerland \\
+%\texttt{pierre.vandergheynst@epfl.ch} \\
 %\And
 %Xavier Bresson \\
-%Nanyang Technological University, Singapore \\
-%\texttt{\{xavier.bresson@ntu.edu.sg} \\
+%SCSE, NTU, Singapore \\
+%\texttt{xavier.bresson@epfl.ch}
 %}
-
-\author{Youngjoo Seo \\
-EPFL, Switzerland \\
-\texttt{youngjoo.seo@epfl.ch} \\
-\And
-Michaël Defferrard \\
-EPFL, Switzerland \\
-\texttt{michael.defferrard@epfl.ch} \\
-\And
-Pierre Vandergheynst \\
-EPFL, Switzerland \\
-\texttt{pierre.vandergheynst@epfl.ch} \\
-\And
-Xavier Bresson \\
-EPFL, Switzerland \\
-\texttt{xavier.bresson@epfl.ch} 
-}
 
 \newcommand{\fix}{\marginpar{FIX}}
 \newcommand{\new}{\marginpar{NEW}}
+\newcommand{\todo}[1]{{\color{red} #1 }}
 
 \DeclareMathOperator*{\diag}{diag}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -70,13 +96,7 @@ EPFL, Switzerland \\
 \newcommand{\figref}[1]{Figure~\ref{fig:#1}}
 \newcommand{\tabref}[1]{Table~\ref{tab:#1}}
 \newcommand{\eqnref}[1]{(\ref{eqn:#1})}
-\newcommand{\secref}[1]{Section~\ref{sec:#1}}
-
-\usepackage{color}
-\newcommand{\todo}[1]{{\color{red} #1 }}
-
-
-%\iclrfinalcopy % Uncomment for camera-ready version
+\newcommand{\secref}[1]{\S\ref{sec:#1}}
 
 \begin{document}
 
@@ -94,8 +114,6 @@ EPFL, Switzerland \\
 	problems: predicting moving MNIST data, and modeling natural language with the Penn
 	Treebank dataset. Experiments show that exploiting simultaneously graph spatial and dynamic information about data can improve both precision and learning speed.
 \end{abstract}
-
-	
 
 \section{Introduction}
 
@@ -396,7 +414,7 @@ stack $K$ of those. See \citet{gcnn} for details.}
 % 2. integrating conv and LSTM
 
 We propose two GCRN architectures that are quite natural, and investigate their
-performances in real-world applications in Section \ref{experiments}.
+performances in real-world applications in \secref{experiments}.
 
 \paragraph{Model 1.} The most straightforward definition is to stack a graph
 CNN, defined as \eqnref{graph_conv_cheby}, for feature extraction and an LSTM,
@@ -466,7 +484,7 @@ encoder, which processes the input sequence, and a decoder, which generates an
 output sequence. A standard practice for machine translation using RNNs
 \citep{gru, seq2seq}.
 
-\section{Experiments} \label{experiments}
+\section{Experiments} \label{sec:experiments}
 
 \subsection{Spatio-Temporal Sequence Modeling on Moving-MNIST}
 
@@ -683,8 +701,8 @@ equipment grant.
 {
 	%\setlength{\bibsep}{4.7pt}
 	\small
-	\bibliography{iclr2017}
-	\bibliographystyle{iclr2017}
+	\bibliography{refs}
+	\bibliographystyle{plain}
 }
 
 \end{document}
