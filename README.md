@@ -12,3 +12,9 @@ International Conference on Neural Information Processing (ICONIP), 2017.
 > The proposed model combines convolutional neural networks (CNN) on graphs to identify spatial structures and RNN to find dynamic patterns.
 > We study two possible architectures of GCRN, and apply the models to two practical problems: predicting moving MNIST data, and modeling natural language with the Penn Treebank dataset.
 > Experiments show that exploiting simultaneously graph spatial and dynamic information about data can improve both precision and learning speed.
+
+## Resources
+
+* PDF: [arXiv](https://arxiv.org/abs/1612.07659), [ICONIP](https://doi.org/10.1007/978-3-030-04167-0_33), [EPFL](https://infoscience.epfl.ch/record/227513).
+* Reviews: <https://openreview.net/forum?id=S19eAF9ee>
+* Code: <https://github.com/youngjoo-epfl/gconvRNN>.
