@@ -18,3 +18,13 @@ International Conference on Neural Information Processing (ICONIP), 2017.
 * PDF: [arXiv](https://arxiv.org/abs/1612.07659), [ICONIP](https://doi.org/10.1007/978-3-030-04167-0_33), [EPFL](https://infoscience.epfl.ch/record/227513).
 * Reviews: <https://openreview.net/forum?id=S19eAF9ee>
 * Code: <https://github.com/youngjoo-epfl/gconvRNN>.
+
+## Compilation
+
+Compile the latex source into a PDF with `make`.
+Run `make clean` to remove temporary files and `make arxiv.zip` to prepare an archive to be uploaded on arXiv.
+
+## Figures
+
+All the figures are in the [`figures`](figures/) folder.
+PDFs can be generated with `make figures`.
