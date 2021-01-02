@@ -13,6 +13,18 @@ International Conference on Neural Information Processing (ICONIP), 2017.
 > We study two possible architectures of GCRN, and apply the models to two practical problems: predicting moving MNIST data, and modeling natural language with the Penn Treebank dataset.
 > Experiments show that exploiting simultaneously graph spatial and dynamic information about data can improve both precision and learning speed.
 
+```
+@inproceedings{gcrn,
+  title = {Structured Sequence Modeling with Graph Convolutional Recurrent Networks},
+  author = {Seo, Youngjoo and Defferrard, Micha\"el and Vandergheynst, Pierre and Bresson, Xavier},
+  booktitle = {International Conference on Neural Information Processing (ICONIP)},
+  year = {2017},
+  archiveprefix = {arXiv},
+  eprint = {1612.07659},
+  url = {https://arxiv.org/abs/1612.07659},
+}
+```
+
 ## Resources
 
 * PDF: [arXiv](https://arxiv.org/abs/1612.07659), [ICONIP](https://doi.org/10.1007/978-3-030-04167-0_33), [EPFL](https://infoscience.epfl.ch/record/227513).
