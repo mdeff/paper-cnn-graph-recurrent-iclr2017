@@ -27,9 +27,16 @@ International Conference on Neural Information Processing (ICONIP), 2017.
 
 ## Resources
 
-* PDF: [arXiv](https://arxiv.org/abs/1612.07659), [ICONIP](https://doi.org/10.1007/978-3-030-04167-0_33), [EPFL](https://infoscience.epfl.ch/record/227513).
-* Reviews: <https://openreview.net/forum?id=S19eAF9ee>
-* Code: <https://github.com/youngjoo-epfl/gconvRNN>.
+PDF available at [arXiv], [OpenReview], [ICONIP], [EPFL].
+
+Related: [code], [slides].
+
+[arXiv]: https://arxiv.org/abs/1612.07659
+[OpenReview]: https://openreview.net/forum?id=S19eAF9ee
+[ICONIP]: https://doi.org/10.1007/978-3-030-04167-0_33
+[EPFL]: https://infoscience.epfl.ch/record/227513
+[code]: https://github.com/youngjoo-epfl/gconvRNN
+[slides]: https://doi.org/10.5281/zenodo.1318401
 
 ## Compilation
 
